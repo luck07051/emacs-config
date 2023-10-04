@@ -6,20 +6,14 @@
 * TOC                                                                   :TOC:
 - [[#custom-function][Custom Function]]
 - [[#package-manager][Package Manager]]
-- [[#evil-mode][Evil Mode]]
-- [[#which-key][Which Key]]
+- [[#install-important-plug][Install Important Plug]]
+  - [[#evil-mode][Evil Mode]]
+  - [[#which-key][Which Key]]
+  - [[#nerd-icons][Nerd Icons]]
 - [[#keybinding][Keybinding]]
   - [[#setup-general][Setup General]]
   - [[#the-keybinding][The keybinding]]
-- [[#nerd-icons][Nerd Icons]]
 - [[#theme][Theme]]
-- [[#org-mode][Org Mode]]
-  - [[#tempo][Tempo]]
-  - [[#indent][Indent]]
-  - [[#header-icons][Header Icons]]
-  - [[#toc][Toc]]
-  - [[#disable-electric-indent][Disable Electric Indent]]
-- [[#dashboard][Dashboard]]
 - [[#ui][UI]]
   - [[#disable-bars][Disable Bars]]
   - [[#number][Number]]
@@ -27,19 +21,24 @@
   - [[#show-trailing-space][Show Trailing Space]]
   - [[#scroll-bemaviour][Scroll Bemaviour]]
   - [[#transparency][Transparency]]
+- [[#dashboard][Dashboard]]
+- [[#org-mode][Org Mode]]
+  - [[#tempo][Tempo]]
+  - [[#indent][Indent]]
+  - [[#header-icons][Header Icons]]
+  - [[#toc][Toc]]
+  - [[#disable-electric-indent][Disable Electric Indent]]
 - [[#others][Others]]
   - [[#dont-create-backup-file][Dont Create Backup file]]
   - [[#remove-trailing-space-when-save][Remove Trailing Space When Save]]
   - [[#smooth-scrolling-and-centering-content][Smooth Scrolling and Centering Content]]
 
 * Custom Function
-
 #+begin_src emacs-lisp
   (defun install-pkg (name) (unless (package-installed-p name) (package-install name)))
 #+end_src
 
 * Package Manager
-
 #+begin_src emacs-lisp
   ;; Set up package.el to work with MELPA
   (require 'package)
@@ -49,8 +48,8 @@
   (package-refresh-contents)
 #+end_src
 
-* Evil Mode
-
+* Install Important Plug
+** Evil Mode
 #+begin_src emacs-lisp
   (install-pkg 'evil)
   (install-pkg 'evil-collection)
@@ -67,8 +66,7 @@
   (evil-mode 1)
 #+end_src
 
-* Which Key
-
+** Which Key
 #+begin_src emacs-lisp
   (install-pkg 'which-key)
   (require 'which-key)
@@ -76,10 +74,14 @@
   (setq which-key-idle-delay 0.8)
 #+end_src
 
+** Nerd Icons
+#+begin_src emacs-lisp
+  (install-pkg 'nerd-icons)
+  (require 'nerd-icons)
+#+end_src
+
 * Keybinding
-
 ** Setup General
-
 #+begin_src emacs-lisp
   (install-pkg 'general)
   (require 'general)
@@ -87,21 +89,17 @@
 #+end_src
 
 ** The keybinding
-
 *** Leader key
-
 #+begin_src emacs-lisp
   (general-create-definer leaderkey :prefix "SPC")
 #+end_src
 
 *** Edit
-
 #+begin_src emacs-lisp
   (general-def 'normal "g c" 'comment-line)
 #+end_src
 
 *** File
-
 #+begin_src emacs-lisp
   (leaderkey
     :keymaps 'normal
@@ -113,7 +111,6 @@
 #+end_src
 
 *** Buffers
-
 #+begin_src emacs-lisp
   (leaderkey
     :keymaps 'normal
@@ -128,7 +125,6 @@
 #+end_src
 
 *** Evaluate
-
 #+begin_src emacs-lisp
   (leaderkey
     :keymaps '(normal visual)
@@ -145,7 +141,6 @@
 #+end_src
 
 *** Toggle
-
 #+begin_src emacs-lisp
   (leaderkey
     :keymaps '(normal visual)
@@ -155,7 +150,6 @@
 #+end_src
 
 *** Helpd
-
 #+begin_src emacs-lisp
   (leaderkey
     :keymaps '(normal visual)
@@ -167,7 +161,6 @@
 #+end_src
 
 *** Org Mode
-
 #+begin_src emacs-lisp
   (leaderkey
     :keymaps '(normal visual)
@@ -176,15 +169,7 @@
     )
 #+end_src
 
-* Nerd Icons
-
-#+begin_src emacs-lisp
-  (install-pkg 'nerd-icons)
-  (require 'nerd-icons)
-#+end_src
-
 * Theme
-
 #+begin_src emacs-lisp
   (use-package doom-themes
     :ensure t
@@ -205,8 +190,59 @@
     (doom-themes-org-config))
 #+end_src
 
-* Org Mode
+* UI
+** Disable Bars
+#+begin_src emacs-lisp
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+#+end_src
 
+** Number
+#+begin_src emacs-lisp
+  (global-display-line-numbers-mode 1)
+#+end_src
+
+** Line Warp
+#+begin_src emacs-lisp
+  (global-visual-line-mode 1)
+#+end_src
+
+** Show Trailing Space
+#+begin_src emacs-lisp
+  (setq-default show-trailing-whitespace t)
+#+end_src
+
+** Scroll Bemaviour
+#+begin_src emacs-lisp
+  ;;(setq scroll-margin 10
+  ;;      scroll-step 1)
+#+end_src
+
+** Transparency
+#+begin_src emacs-lisp
+  (set-frame-parameter (selected-frame) 'alpha '(100 100))
+  (add-to-list 'default-frame-alist '(alpha 100 100))
+#+end_src
+
+* Dashboard
+#+begin_src emacs-lisp
+  (install-pkg 'dashboard)
+  ;; Use nerd icons
+  (setq dashboard-display-icons-p t) ;; display icons on both GUI and terminal
+  (setq dashboard-icon-type 'nerd-icons) ;; use `nerd-icons' package
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  ;; Config
+  (setq dashboard-center-content t)
+
+  ;; Enable Dashboard
+  (require 'dashboard)
+  (dashboard-setup-startup-hook)
+  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))  ;; for emacs daemon
+#+end_src
+
+* Org Mode
 ** Tempo
 Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block. Allowed triggers are:
 
@@ -233,13 +269,11 @@ Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block
 #+end_src
 
 ** Indent
-
 #+begin_src emacs-lisp
   (add-hook 'org-mode-hook 'org-indent-mode)
 #+end_src
 
 ** Header Icons
-
 #+begin_src emacs-lisp
   (install-pkg 'org-bullets)
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
@@ -247,94 +281,28 @@ Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block
 #+end_src
 
 ** Toc
-
 #+begin_src emacs-lisp
   (install-pkg 'toc-org)
   (add-hook 'org-mode-hook 'toc-org-mode)
 #+end_src
 
 ** Disable Electric Indent
-
 #+begin_src emacs-lisp
   (electric-indent-mode -1)
 #+end_src
 
-* Dashboard
-
-#+begin_src emacs-lisp
-  (install-pkg 'dashboard)
-  ;; Use nerd icons
-  (setq dashboard-display-icons-p t) ;; display icons on both GUI and terminal
-  (setq dashboard-icon-type 'nerd-icons) ;; use `nerd-icons' package
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
-  ;; Config
-  (setq dashboard-center-content t)
-
-  ;; Enable Dashboard
-  (require 'dashboard)
-  (dashboard-setup-startup-hook)
-  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))  ;; for emacs daemon
-#+end_src
-
-* UI
-
-** Disable Bars
-
-#+begin_src emacs-lisp
-  (menu-bar-mode -1)
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1)
-#+end_src
-
-** Number
-
-#+begin_src emacs-lisp
-  (global-display-line-numbers-mode 1)
-#+end_src
-
-** Line Warp
-
-#+begin_src emacs-lisp
-  (global-visual-line-mode 1)
-#+end_src
-
-** Show Trailing Space
-
-#+begin_src emacs-lisp
-  (setq-default show-trailing-whitespace t)
-#+end_src
-
-** Scroll Bemaviour
-
-#+begin_src emacs-lisp
-  ;;(setq scroll-margin 10
-  ;;      scroll-step 1)
-#+end_src
-
-** Transparency
-
-#+begin_src emacs-lisp
-  (set-frame-parameter (selected-frame) 'alpha '(100 100))
-  (add-to-list 'default-frame-alist '(alpha 100 100))
-#+end_src
-
 * Others
-
 ** Dont Create Backup file
-
 #+begin_src emacs-lisp
   (setq make-backup-files nil)
 #+end_src
 
 ** Remove Trailing Space When Save
-
 #+begin_src emacs-lisp
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 #+end_src
 
 ** Smooth Scrolling and Centering Content
-
 #+begin_src emacs-lisp
   (install-pkg 'sublimity)
 
