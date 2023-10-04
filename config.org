@@ -1,0 +1,259 @@
+#+TITLE: Config File
+#+AUTHOR: uima
+#+DESCRIPTION: The emacs config file
+#+STARTUP: showeverything
+
+* TOC                                                                   :TOC:
+- [[#custom-function][Custom Function]]
+- [[#package-manager][Package Manager]]
+- [[#evil-mode][Evil Mode]]
+- [[#which-key][Which Key]]
+- [[#keybinding][Keybinding]]
+  - [[#setup-general][Setup General]]
+  - [[#the-keybinding][The keybinding]]
+- [[#nerd-icons][Nerd Icons]]
+- [[#theme][Theme]]
+- [[#org-mode][Org Mode]]
+  - [[#indent][Indent]]
+  - [[#header-icons][Header Icons]]
+  - [[#toc][Toc]]
+- [[#dashboard][Dashboard]]
+- [[#ui][UI]]
+  - [[#disable-bars][Disable Bars]]
+  - [[#number][Number]]
+  - [[#line-warp][Line Warp]]
+  - [[#show-trailing-space][Show Trailing Space]]
+  - [[#scroll-bemaviour][Scroll Bemaviour]]
+  - [[#transparency][Transparency]]
+- [[#others][Others]]
+  - [[#dont-create-backup-file][Dont Create Backup file]]
+  - [[#remove-trailing-space-when-save][Remove Trailing Space When Save]]
+- [[#smooth-scrolling][Smooth Scrolling]]
+
+* Custom Function
+
+#+begin_src emacs-lisp
+  (defun install-pkg (name) (unless (package-installed-p name) (package-install name)))
+#+end_src
+
+* Package Manager
+
+#+begin_src emacs-lisp
+  ;; Set up package.el to work with MELPA
+  (require 'package)
+  (add-to-list 'package-archives
+               '("melpa" . "https://melpa.org/packages/"))
+  (package-initialize)
+  (package-refresh-contents)
+#+end_src
+
+* Evil Mode
+
+#+begin_src emacs-lisp
+  (install-pkg 'evil)
+  (install-pkg 'evil-collection)
+
+  ;; Setting
+  (setq evil-want-keybinding nil)
+  (setq evil-vsplit-window-right t)
+  (setq evil-split-window-below t)
+
+  ;; Enable Evil
+  (require 'evil)
+  (when (require 'evil-collection nil t)
+    (evil-collection-init))
+  (evil-mode 1)
+#+end_src
+
+* Which Key
+
+#+begin_src emacs-lisp
+  (install-pkg 'which-key)
+  (require 'which-key)
+  (which-key-mode)
+  (setq which-key-idle-delay 0.8)
+#+end_src
+
+* Keybinding
+
+** Setup General
+
+#+begin_src emacs-lisp
+  (install-pkg 'general)
+  (require 'general)
+  (general-evil-setup)
+#+end_src
+
+** The keybinding
+
+*** Leader key
+
+#+begin_src emacs-lisp
+  (general-create-definer leaderkey :prefix "SPC")
+#+end_src
+
+*** File
+
+#+begin_src emacs-lisp
+  (leaderkey
+    :keymaps 'normal
+    "f" '(:ignore t :wk "File")
+    "f e" '(find-file :wk "Find file"))
+#+end_src
+
+*** Evaluate
+
+#+begin_src emacs-lisp
+  (leaderkey
+    :keymaps '(normal visual)
+    "e" '(:ignore t :wk "Evaluate")
+    "e b" '(eval-buffer :wk "Evaluate elisp in buffer")
+    "e d" '(eval-defun :wk "Evaluate defun containing or after point")
+    "e e" '(eval-expression :wk "Evaluate and elisp expression")
+    "e l" '(eval-last-sexp :wk "Evaluate elisp expression before point")
+    "e r" '(eval-region :wk "Evaluate elisp in region")
+    "e f" '(load-file :wk "Reload file"))
+#+end_src
+
+* Nerd Icons
+
+#+begin_src emacs-lisp
+  (install-pkg 'nerd-icons)
+  (require 'nerd-icons)
+#+end_src
+
+* Theme
+
+#+begin_src emacs-lisp
+  (use-package doom-themes
+    :ensure t
+    :config
+    ;; Global settings (defaults)
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    (load-theme 'doom-one t)
+
+    ;; Enable flashing mode-line on errors
+    (doom-themes-visual-bell-config)
+    ;; Enable custom neotree theme (all-the-icons must be installed!)
+    (doom-themes-neotree-config)
+    ;; or for treemacs users
+    (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+    (doom-themes-treemacs-config)
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config))
+#+end_src
+
+* Org Mode
+
+** Indent
+
+#+begin_src emacs-lisp
+  (add-hook 'org-mode-hook 'org-indent-mode)
+#+end_src
+
+** Header Icons
+
+#+begin_src emacs-lisp
+  (install-pkg 'org-bullets)
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1))) (require 'org-bullets)
+#+end_src
+
+** Toc
+
+#+begin_src emacs-lisp
+  (install-pkg 'toc-org)
+  (add-hook 'org-mode-hook 'toc-org-mode)
+#+end_src
+
+* Dashboard
+
+#+begin_src emacs-lisp
+  (install-pkg 'dashboard)
+  ;; Use nerd icons
+  (setq dashboard-display-icons-p t) ;; display icons on both GUI and terminal
+  (setq dashboard-icon-type 'nerd-icons) ;; use `nerd-icons' package
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  ;; Config
+  (setq dashboard-center-content t)
+
+  ;; Enable Dashboard
+  (require 'dashboard)
+  (dashboard-setup-startup-hook)
+  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))  ;; for emacs daemon
+#+end_src
+
+* UI
+
+** Disable Bars
+
+#+begin_src emacs-lisp
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (scroll-bar-mode -1)
+#+end_src
+
+** Number
+
+#+begin_src emacs-lisp
+  (global-display-line-numbers-mode 1)
+#+end_src
+
+** Line Warp
+
+#+begin_src emacs-lisp
+  (global-visual-line-mode 1)
+#+end_src
+
+** Show Trailing Space
+
+#+begin_src emacs-lisp
+  (setq-default show-trailing-whitespace t)
+#+end_src
+
+** Scroll Bemaviour
+
+#+begin_src emacs-lisp
+  ;;(setq scroll-margin 10
+  ;;      scroll-step 1)
+#+end_src
+
+** Transparency
+
+#+begin_src emacs-lisp
+  (set-frame-parameter (selected-frame) 'alpha '(100 100))
+  (add-to-list 'default-frame-alist '(alpha 100 100))
+#+end_src
+
+* Others
+
+** Dont Create Backup file
+
+#+begin_src emacs-lisp
+  (setq make-backup-files nil)
+#+end_src
+
+** Remove Trailing Space When Save
+
+#+begin_src emacs-lisp
+  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+#+end_src
+
+* Smooth Scrolling
+
+#+begin_src emacs-lisp
+  (install-pkg 'sublimity)
+
+  (require 'sublimity)
+  (require 'sublimity-scroll)
+  (require 'sublimity-attractive)
+  ;; Setting the speed
+  (setq sublimity-scroll-weight 10
+        sublimity-scroll-drift-length 3)
+  (setq sublimity-scroll-vertical-frame-delay 0.01)
+  ;; Keep content on center
+  (setq sublimity-attractive-centering-width 110)
+  ;; Enable smooth scrolling
+  (sublimity-mode 1)
+#+end_src
