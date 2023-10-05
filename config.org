@@ -26,9 +26,11 @@
 - [[#org-mode][Org Mode]]
   - [[#agenda][Agenda]]
   - [[#tempo][Tempo]]
+  - [[#time-stamp][Time Stamp]]
+  - [[#insert-metadata][Insert Metadata]]
   - [[#indent][Indent]]
-  - [[#header-icons][Header Icons]]
   - [[#toc][Toc]]
+  - [[#show-hidden-element][Show Hidden Element]]
   - [[#disable-electric-indent][Disable Electric Indent]]
 - [[#others][Others]]
   - [[#dont-create-backup-file][Dont Create Backup file]]
@@ -95,13 +97,12 @@ History plug for Vertico
   (savehist-mode 1)
 #+end_src
 
-*** Orderless
+*** Hotfuzz
+Fuzzy search
 #+begin_src emacs-lisp
-  (install-pkg 'orderless)
-  (setq completion-styles '(orderless basic)
-        completion-category-defaults nil
-        completion-category-overrides '((file (styles partial-completion))))
-  (require 'orderless)
+  (install-pkg 'hotfuzz)
+  (setq completion-styles '(hotfuzz))
+  (require 'hotfuzz)
 #+end_src
 
 ** Which Key
@@ -211,6 +212,7 @@ History plug for Vertico
     "o"   '(:ignore t :wk "Org")
     "o t" '(org-insert-structure-template :wk "Org insert template")
     "o l" '(counsel-org-link :wk "Org insert link")
+    "o m" '(org-header-skeleton :wk "Org insert metadata")
     )
 #+end_src
 
@@ -333,28 +335,43 @@ History plug for Vertico
 #+end_src
 
 ** Tempo
-Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block. Allowed triggers are:
-
-| Trigger | Template     |
-|---------+--------------|
-| i       | index        |
-| A       | ascii        |
-| H       | html         |
-| L       | latex        |
-| v       | verse        |
-| s       | src          |
-| q       | quote        |
-| l       | export-latex |
-| h       | export-html  |
-| E       | export       |
-| e       | example      |
-| C       | comment      |
-| c       | center       |
-| a       | export-ascii |
-| I       | include      |
+Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block.
+Or use '<C-c><C-,>', without tempo.
 
 #+begin_src emacs-lisp
   (require 'org-tempo)
+#+end_src
+
+** TODO Time Stamp
+Automatically update a template
+[[https://emacs.stackexchange.com/questions/64753/is-there-a-way-to-have-in-a-org-mode-file-a-placeholder-for-the-current-date-aut]]
+[https://www.gnu.org/software/emacs/manual/html_node/autotype/Timestamps.html]
+#+begin_src emacs-lisp
+  ;;(add-hook 'before-save-hook #'time-stamp)
+#+end_src
+
+** Insert Metadata
+*** Get Title
+#+begin_src emacs-lisp
+  (defun get-file-name-without-extension ()
+    (file-name-sans-extension (file-name-nondirectory
+                               (buffer-file-name (window-buffer (minibuffer-selected-window))))))
+  (defun get-title-by-file-name ()
+    (s-titleize
+     (subst-char-in-string ?- (string-to-char " ") (get-file-name-without-extension))))
+#+end_src
+
+*** Skeleton
+#+begin_src emacs-lisp
+  (setq user-full-name "uima")
+
+  (define-skeleton org-header-skeleton
+    "Header info for an Org file."
+    "Description: " "#+TITLE: " (get-title-by-file-name) "\n"
+    "#+DESCRIPTION: " str "\n"
+    "#+AUTHOR: " user-full-name "\n"
+    "#+DATE: " (format-time-string "%Y-%m-%d") "\n"
+    "#+UPDATED_DATE: " (format-time-string "%Y-%m-%d") "\n")
 #+end_src
 
 ** Indent
@@ -362,17 +379,17 @@ Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block
   (add-hook 'org-mode-hook 'org-indent-mode)
 #+end_src
 
-** Header Icons
-#+begin_src emacs-lisp
-  (install-pkg 'org-bullets)
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-  (require 'org-bullets)
-#+end_src
-
 ** Toc
 #+begin_src emacs-lisp
   (install-pkg 'toc-org)
   (add-hook 'org-mode-hook 'toc-org-mode)
+#+end_src
+
+** TODO Show Hidden Element
+#+begin_src emacs-lisp
+  (install-pkg 'org-appear)
+  (require 'org-appear)
+  (add-hook 'org-mode-hook 'org-appear-mode)
 #+end_src
 
 ** Disable Electric Indent
