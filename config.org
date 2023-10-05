@@ -1,28 +1,30 @@
 #+TITLE: Config File
 #+AUTHOR: uima
 #+DESCRIPTION: The emacs config file
-#+STARTUP: showeverything
 
 * TOC                                                                   :TOC:
 - [[#custom-function][Custom Function]]
 - [[#package-manager][Package Manager]]
 - [[#install-important-plug][Install Important Plug]]
   - [[#evil-mode][Evil Mode]]
+  - [[#vertico][Vertico]]
   - [[#which-key][Which Key]]
   - [[#nerd-icons][Nerd Icons]]
 - [[#keybinding][Keybinding]]
   - [[#setup-general][Setup General]]
   - [[#the-keybinding][The keybinding]]
 - [[#theme][Theme]]
+- [[#mode-line][Mode Line]]
 - [[#ui][UI]]
   - [[#disable-bars][Disable Bars]]
+  - [[#disable-blink-cursor][Disable Blink Cursor]]
   - [[#number][Number]]
   - [[#line-warp][Line Warp]]
   - [[#show-trailing-space][Show Trailing Space]]
-  - [[#scroll-bemaviour][Scroll Bemaviour]]
   - [[#transparency][Transparency]]
 - [[#dashboard][Dashboard]]
 - [[#org-mode][Org Mode]]
+  - [[#agenda][Agenda]]
   - [[#tempo][Tempo]]
   - [[#indent][Indent]]
   - [[#header-icons][Header Icons]]
@@ -31,7 +33,8 @@
 - [[#others][Others]]
   - [[#dont-create-backup-file][Dont Create Backup file]]
   - [[#remove-trailing-space-when-save][Remove Trailing Space When Save]]
-  - [[#smooth-scrolling-and-centering-content][Smooth Scrolling and Centering Content]]
+  - [[#centering-content][Centering Content]]
+  - [[#show-parens][Show parens]]
 
 * Custom Function
 #+begin_src emacs-lisp
@@ -66,6 +69,41 @@
   (evil-mode 1)
 #+end_src
 
+*** Evil Snipe
+2-char searching and repeated f/t
+#+begin_src emacs-lisp
+  (install-pkg 'evil-snipe)
+  (require 'evil-snipe)
+  (evil-snipe-mode 1)
+  (evil-snipe-override-mode 1)
+  (setq evil-snipe-scope 'visible)
+#+end_src
+
+** Vertico
+The completion mechanism
+#+begin_src emacs-lisp
+  (install-pkg 'vertico)
+  (require 'vertico)
+  (vertico-mode 1)
+#+end_src
+
+*** Savehist
+History plug for Vertico
+#+begin_src emacs-lisp
+  (install-pkg 'savehist)
+  (require 'savehist)
+  (savehist-mode 1)
+#+end_src
+
+*** Orderless
+#+begin_src emacs-lisp
+  (install-pkg 'orderless)
+  (setq completion-styles '(orderless basic)
+        completion-category-defaults nil
+        completion-category-overrides '((file (styles partial-completion))))
+  (require 'orderless)
+#+end_src
+
 ** Which Key
 #+begin_src emacs-lisp
   (install-pkg 'which-key)
@@ -94,8 +132,13 @@
   (general-create-definer leaderkey :prefix "SPC")
 #+end_src
 
-*** Edit
+*** Normal
 #+begin_src emacs-lisp
+  (general-def 'normal "<XF86Copy>" 'clipboard-kill-ring-save)
+  (general-def 'normal "<XF86Cut>" 'clipboard-kill-region)
+  (general-def 'normal "<XF86Paste>" 'clipboard-kill-yank)
+
+  (general-def 'normal ";" 'evil-search-forward)  ;; map ; /
   (general-def 'normal "g c" 'comment-line)
 #+end_src
 
@@ -105,7 +148,8 @@
     :keymaps 'normal
     "f"   '(:ignore t :wk "File")
     "f e" '(find-file :wk "Find file")
-    "f c" '((lambda () (interactive) (find-file "~/.config/emacs/init.el"))
+    "f r" '(recentf :wk "Find recent file")
+    "f c" '((lambda () (interactive) (find-file "~/.config/emacs/config.org"))
             :wk "Open config file")
     )
 #+end_src
@@ -166,28 +210,61 @@
     :keymaps '(normal visual)
     "o"   '(:ignore t :wk "Org")
     "o t" '(org-insert-structure-template :wk "Org insert template")
+    "o l" '(counsel-org-link :wk "Org insert link")
     )
+#+end_src
+
+*** Page Up/Down to Scoll half of page
+#+begin_src emacs-lisp
+  (defun my/scroll-down-half-page ()
+    "scroll down half a page while keeping the cursor centered"
+    (interactive)
+    (let ((ln (line-number-at-pos (point)))
+          (lmax (line-number-at-pos (point-max))))
+      (cond ((= ln 1) (move-to-window-line nil))
+            ((= ln lmax) (recenter (window-end)))
+            (t (progn
+                 (move-to-window-line -1)
+                 (recenter))))))
+
+  (defun my/scroll-up-half-page ()
+    "scroll up half a page while keeping the cursor centered"
+    (interactive)
+    (let ((ln (line-number-at-pos (point)))
+          (lmax (line-number-at-pos (point-max))))
+      (cond ((= ln 1) nil)
+            ((= ln lmax) (move-to-window-line nil))
+            (t (progn
+                 (move-to-window-line 0)
+                 (recenter))))))
+
+  (general-def 'normal "<next>" 'my/scroll-down-half-page)
+  (general-def 'normal "<prior>" 'my/scroll-up-half-page)
 #+end_src
 
 * Theme
 #+begin_src emacs-lisp
-  (use-package doom-themes
-    :ensure t
-    :config
-    ;; Global settings (defaults)
-    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-          doom-themes-enable-italic t) ; if nil, italics is universally disabled
-    (load-theme 'doom-one t)
+  (install-pkg 'doom-themes)
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+        doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one t)
 
-    ;; Enable flashing mode-line on errors
-    (doom-themes-visual-bell-config)
-    ;; Enable custom neotree theme (all-the-icons must be installed!)
-    (doom-themes-neotree-config)
-    ;; or for treemacs users
-    (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-    (doom-themes-treemacs-config)
-    ;; Corrects (and improves) org-mode's native fontification.
-    (doom-themes-org-config))
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config)
+#+end_src
+
+* Mode Line
+#+begin_src emacs-lisp
+  (install-pkg 'doom-modeline)
+  (require 'doom-modeline)
+  (doom-modeline-mode 1)
 #+end_src
 
 * UI
@@ -196,6 +273,11 @@
   (menu-bar-mode -1)
   (tool-bar-mode -1)
   (scroll-bar-mode -1)
+#+end_src
+
+** Disable Blink Cursor
+#+begin_src emacs-lisp
+  (blink-cursor-mode 0)
 #+end_src
 
 ** Number
@@ -211,12 +293,14 @@
 ** Show Trailing Space
 #+begin_src emacs-lisp
   (setq-default show-trailing-whitespace t)
-#+end_src
-
-** Scroll Bemaviour
-#+begin_src emacs-lisp
-  ;;(setq scroll-margin 10
-  ;;      scroll-step 1)
+  ;; Disable in these modes
+  (dolist (hook '(special-mode-hook
+                  term-mode-hook
+                  comint-mode-hook
+                  compilation-mode-hook
+                  minibuffer-setup-hook))
+    (add-hook hook
+              (lambda () (setq show-trailing-whitespace nil))))
 #+end_src
 
 ** Transparency
@@ -243,6 +327,11 @@
 #+end_src
 
 * Org Mode
+** Agenda
+#+begin_src emacs-lisp
+  (setq org-agenda-files '("~/notes"))
+#+end_src
+
 ** Tempo
 Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block. Allowed triggers are:
 
@@ -302,19 +391,24 @@ Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
 #+end_src
 
-** Smooth Scrolling and Centering Content
+** Centering Content
 #+begin_src emacs-lisp
   (install-pkg 'sublimity)
 
   (require 'sublimity)
-  (require 'sublimity-scroll)
   (require 'sublimity-attractive)
-  ;; Setting the speed
-  (setq sublimity-scroll-weight 10
-        sublimity-scroll-drift-length 3)
-  (setq sublimity-scroll-vertical-frame-delay 0.01)
   ;; Keep content on center
   (setq sublimity-attractive-centering-width 110)
   ;; Enable smooth scrolling
   (sublimity-mode 1)
+#+end_src
+
+** Show parens
+#+begin_src emacs-lisp
+(define-advice show-paren-function (:around (fn) fix)
+  "Highlight enclosing parens."
+  (cond ((looking-at-p "\\s(") (funcall fn))
+        (t (save-excursion
+             (ignore-errors (backward-up-list))
+             (funcall fn)))))
 #+end_src
