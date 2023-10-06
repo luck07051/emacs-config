@@ -2,4 +2,4 @@
  (expand-file-name
   "config.org"
   user-emacs-directory))
-(setq custom-file "custom.el")
+(setq custom-file "~/.config/emacs/custom.el")

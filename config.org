@@ -3,7 +3,6 @@
 #+DESCRIPTION: The emacs config file
 
 * TOC                                                                   :TOC:
-- [[#custom-function][Custom Function]]
 - [[#package-manager][Package Manager]]
 - [[#install-important-plug][Install Important Plug]]
   - [[#evil-mode][Evil Mode]]
@@ -22,6 +21,8 @@
   - [[#line-warp][Line Warp]]
   - [[#show-trailing-space][Show Trailing Space]]
   - [[#transparency][Transparency]]
+  - [[#centering-content][Centering Content]]
+  - [[#show-parens][Show parens]]
 - [[#dashboard][Dashboard]]
 - [[#org-mode][Org Mode]]
   - [[#agenda][Agenda]]
@@ -35,13 +36,6 @@
 - [[#others][Others]]
   - [[#dont-create-backup-file][Dont Create Backup file]]
   - [[#remove-trailing-space-when-save][Remove Trailing Space When Save]]
-  - [[#centering-content][Centering Content]]
-  - [[#show-parens][Show parens]]
-
-* Custom Function
-#+begin_src emacs-lisp
-  (defun install-pkg (name) (unless (package-installed-p name) (package-install name)))
-#+end_src
 
 * Package Manager
 #+begin_src emacs-lisp
@@ -56,75 +50,90 @@
 * Install Important Plug
 ** Evil Mode
 #+begin_src emacs-lisp
-  (install-pkg 'evil)
-  (install-pkg 'evil-collection)
+  (use-package evil
+    :ensure t
+    :init
+    (setq evil-want-keybinding nil)
+    (setq evil-vsplit-window-right t)
+    (setq evil-split-window-below t)
+    :config
+    (evil-mode 1))
+#+end_src
 
-  ;; Setting
-  (setq evil-want-keybinding nil)
-  (setq evil-vsplit-window-right t)
-  (setq evil-split-window-below t)
-
-  ;; Enable Evil
-  (require 'evil)
-  (when (require 'evil-collection nil t)
+*** Evil Collection
+#+begin_src emacs-lisp
+  (use-package evil-collection
+    :after evil
+    :ensure t
+    :config
     (evil-collection-init))
-  (evil-mode 1)
 #+end_src
 
 *** Evil Snipe
 2-char searching and repeated f/t
 #+begin_src emacs-lisp
-  (install-pkg 'evil-snipe)
-  (require 'evil-snipe)
-  (evil-snipe-mode 1)
-  (evil-snipe-override-mode 1)
-  (setq evil-snipe-scope 'visible)
+  (use-package evil-snipe
+    :after evil
+    :ensure t
+    :config
+    (evil-snipe-mode 1)
+    (evil-snipe-override-mode 1)
+    (setq evil-snipe-scope 'visible))
 #+end_src
 
 ** Vertico
 The completion mechanism
 #+begin_src emacs-lisp
-  (install-pkg 'vertico)
-  (require 'vertico)
-  (vertico-mode 1)
+  (use-package vertico
+    :ensure t
+    :config
+    (vertico-mode 1))
 #+end_src
 
 *** Savehist
 History plug for Vertico
 #+begin_src emacs-lisp
-  (install-pkg 'savehist)
-  (require 'savehist)
-  (savehist-mode 1)
+  (use-package savehist
+    :after vertico
+    :ensure t
+    :config
+    (savehist-mode 1))
 #+end_src
 
 *** Hotfuzz
 Fuzzy search
 #+begin_src emacs-lisp
-  (install-pkg 'hotfuzz)
-  (setq completion-styles '(hotfuzz))
-  (require 'hotfuzz)
+  (use-package hotfuzz
+    :after vertico
+    :ensure t
+    :init
+    (setq completion-styles '(hotfuzz))
+    :config
+    (require 'hotfuzz))
 #+end_src
 
 ** Which Key
 #+begin_src emacs-lisp
-  (install-pkg 'which-key)
-  (require 'which-key)
-  (which-key-mode)
-  (setq which-key-idle-delay 0.8)
+  (use-package which-key
+    :ensure t
+    :config
+    (which-key-mode)
+    (setq which-key-idle-delay 0.8))
 #+end_src
 
 ** Nerd Icons
 #+begin_src emacs-lisp
-  (install-pkg 'nerd-icons)
-  (require 'nerd-icons)
+  (use-package nerd-icons
+    :ensure t)
 #+end_src
 
 * Keybinding
 ** Setup General
 #+begin_src emacs-lisp
-  (install-pkg 'general)
-  (require 'general)
-  (general-evil-setup)
+  (use-package general
+    :ensure t
+    :config
+    (general-evil-setup))
 #+end_src
 
 ** The keybinding
@@ -246,27 +255,30 @@ Fuzzy search
 
 * Theme
 #+begin_src emacs-lisp
-  (install-pkg 'doom-themes)
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t) ; if nil, italics is universally disabled
-  (load-theme 'doom-one t)
+  (use-package doom-themes
+    :ensure t
+    :config
+    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+    (load-theme 'doom-one t)
 
-  ;; Enable flashing mode-line on errors
-  (doom-themes-visual-bell-config)
-  ;; Enable custom neotree theme (all-the-icons must be installed!)
-  (doom-themes-neotree-config)
-  ;; or for treemacs users
-  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-  (doom-themes-treemacs-config)
-  ;; Corrects (and improves) org-mode's native fontification.
-  (doom-themes-org-config)
+    ;; Enable flashing mode-line on errors
+    (doom-themes-visual-bell-config)
+    ;; Enable custom neotree theme (all-the-icons must be installed!)
+    (doom-themes-neotree-config)
+    ;; or for treemacs users
+    (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+    (doom-themes-treemacs-config)
+    ;; Corrects (and improves) org-mode's native fontification.
+    (doom-themes-org-config))
 #+end_src
 
 * Mode Line
 #+begin_src emacs-lisp
-  (install-pkg 'doom-modeline)
-  (require 'doom-modeline)
-  (doom-modeline-mode 1)
+  (use-package doom-modeline
+    :ensure t
+    :config
+    (doom-modeline-mode 1))
 #+end_src
 
 * UI
@@ -311,21 +323,44 @@ Fuzzy search
   (add-to-list 'default-frame-alist '(alpha 100 100))
 #+end_src
 
+** Centering Content
+#+begin_src emacs-lisp
+  (use-package sublimity
+  :ensure t
+  :config
+  (require 'sublimity-attractive)
+  ;; Keep content on center
+  (setq sublimity-attractive-centering-width 110)
+  ;; Enable smooth scrolling
+  (sublimity-mode 1))
+#+end_src
+
+** Show parens
+#+begin_src emacs-lisp
+(define-advice show-paren-function (:around (fn) fix)
+  "Highlight enclosing parens."
+  (cond ((looking-at-p "\\s(") (funcall fn))
+        (t (save-excursion
+             (ignore-errors (backward-up-list))
+             (funcall fn)))))
+#+end_src
+
 * Dashboard
 #+begin_src emacs-lisp
-  (install-pkg 'dashboard)
-  ;; Use nerd icons
-  (setq dashboard-display-icons-p t) ;; display icons on both GUI and terminal
-  (setq dashboard-icon-type 'nerd-icons) ;; use `nerd-icons' package
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
-  ;; Config
-  (setq dashboard-center-content t)
-
-  ;; Enable Dashboard
-  (require 'dashboard)
-  (dashboard-setup-startup-hook)
-  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))  ;; for emacs daemon
+  (use-package dashboard
+    :ensure t
+    :init
+    ;; Use nerd icons
+    (setq dashboard-display-icons-p t) ;; display icons on both GUI and terminal
+    (setq dashboard-icon-type 'nerd-icons) ;; use `nerd-icons' package
+    (setq dashboard-set-heading-icons t)
+    (setq dashboard-set-file-icons t)
+    ;; Config
+    (setq dashboard-center-content t)
+    :config
+    (dashboard-setup-startup-hook)
+    ;; for emacs daemon
+    (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
 #+end_src
 
 * Org Mode
@@ -336,7 +371,7 @@ Fuzzy search
 
 ** Tempo
 Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block.
-Or use '<C-c><C-,>', without tempo.
+Or use '<C-c><C-,>' keybind without tempo.
 
 #+begin_src emacs-lisp
   (require 'org-tempo)
@@ -381,15 +416,28 @@ Automatically update a template
 
 ** Toc
 #+begin_src emacs-lisp
-  (install-pkg 'toc-org)
-  (add-hook 'org-mode-hook 'toc-org-mode)
+  (use-package toc-org
+    :ensure t
+    :hook (org-mode . toc-org-mode))
 #+end_src
 
-** TODO Show Hidden Element
+** Show Hidden Element
 #+begin_src emacs-lisp
-  (install-pkg 'org-appear)
-  (require 'org-appear)
-  (add-hook 'org-mode-hook 'org-appear-mode)
+  (use-package org-appear
+    :ensure t
+    :init
+    (setq org-appear-autolinks 1)
+    (setq org-appear-trigger 'manual)
+    (add-hook 'org-mode-hook 'org-appear-mode)
+    (add-hook 'org-mode-hook (lambda ()
+                               (add-hook 'evil-insert-state-entry-hook
+                                         #'org-appear-manual-start
+                                         nil
+                                         t)
+                               (add-hook 'evil-insert-state-exit-hook
+                                         #'org-appear-manual-stop
+                                         nil
+                                         t))))
 #+end_src
 
 ** Disable Electric Indent
@@ -406,26 +454,4 @@ Automatically update a template
 ** Remove Trailing Space When Save
 #+begin_src emacs-lisp
   (add-hook 'before-save-hook 'delete-trailing-whitespace)
-#+end_src
-
-** Centering Content
-#+begin_src emacs-lisp
-  (install-pkg 'sublimity)
-
-  (require 'sublimity)
-  (require 'sublimity-attractive)
-  ;; Keep content on center
-  (setq sublimity-attractive-centering-width 110)
-  ;; Enable smooth scrolling
-  (sublimity-mode 1)
-#+end_src
-
-** Show parens
-#+begin_src emacs-lisp
-(define-advice show-paren-function (:around (fn) fix)
-  "Highlight enclosing parens."
-  (cond ((looking-at-p "\\s(") (funcall fn))
-        (t (save-excursion
-             (ignore-errors (backward-up-list))
-             (funcall fn)))))
 #+end_src
