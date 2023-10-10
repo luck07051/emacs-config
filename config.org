@@ -11,14 +11,14 @@
   - [[#nerd-icons][Nerd Icons]]
 - [[#keybinding][Keybinding]]
   - [[#define-leader-key][Define Leader key]]
-  - [[#normal][Normal]]
+  - [[#special-keys][Special Keys]]
+  - [[#usual-mode][Usual Mode]]
+  - [[#comment][Comment]]
   - [[#file][File]]
   - [[#buffers][Buffers]]
   - [[#evaluate][Evaluate]]
   - [[#toggle][Toggle]]
-  - [[#help][Help]]
   - [[#org-mode][Org Mode]]
-  - [[#page-updown-to-scoll-half-of-page][Page Up/Down to Scoll half of page]]
 - [[#theme][Theme]]
 - [[#mode-line][Mode Line]]
 - [[#ui][UI]]
@@ -33,13 +33,21 @@
 - [[#dashboard][Dashboard]]
 - [[#org-mode-1][Org Mode]]
   - [[#agenda][Agenda]]
-  - [[#tempo][Tempo]]
-  - [[#time-stamp][Time Stamp]]
+  - [[#tags][Tags]]
+  - [[#keyword][Keyword]]
+  - [[#capture-templete][Capture Templete]]
   - [[#insert-metadata][Insert Metadata]]
+  - [[#display-inline-images][Display Inline Images]]
+  - [[#tempo][Tempo]]
   - [[#indent][Indent]]
-  - [[#toc][Toc]]
-  - [[#show-hidden-element][Show Hidden Element]]
   - [[#disable-electric-indent][Disable Electric Indent]]
+  - [[#toc][Toc]]
+  - [[#hide-elements][Hide Elements]]
+  - [[#show-hidden-element][Show Hidden Element]]
+  - [[#babel][Babel]]
+  - [[#export][Export]]
+  - [[#archive-doned-to-do-list][Archive Doned To-do list]]
+  - [[#automatically-done-when-all-children-are-done][Automatically DONE When All Children Are Done]]
 - [[#others][Others]]
   - [[#dont-create-backup-file][Dont Create Backup file]]
   - [[#remove-trailing-space-when-save][Remove Trailing Space When Save]]
@@ -49,7 +57,7 @@
   ;; Set up package.el to work with MELPA
   (require 'package)
   (add-to-list 'package-archives
-               '("melpa" . "https://melpa.org/packages/"))
+	       '("melpa" . "https://melpa.org/packages/"))
   (package-initialize)
   (package-refresh-contents)
 
@@ -87,6 +95,14 @@
     (evil-snipe-mode 1)
     (evil-snipe-override-mode 1)
     (setq evil-snipe-scope 'visible))
+#+end_src
+
+*** Evil Surround
+#+begin_src emacs-lisp
+  (use-package evil-surround
+    :after evil
+    :config
+    (global-evil-surround-mode 1))
 #+end_src
 
 ** Vertico
@@ -137,20 +153,34 @@ Fuzzy search
   (evil-set-leader nil (kbd ",") 1) ;; set local leader
 #+end_src
 
-** Normal
+** Special Keys
 #+begin_src emacs-lisp
-  (general-def 'normal "<XF86Copy>" 'clipboard-kill-ring-save)
-  (general-def 'normal "<XF86Cut>" 'clipboard-kill-region)
-  (general-def 'normal "<XF86Paste>" 'clipboard-kill-yank)
+  (evil-define-key 'nil 'global
+    (kbd "<next>") 'evil-scroll-down
+    (kbd "<prior>") 'evil-scroll-up
+    (kbd "<XF86Copy>") 'evil-yank
+    (kbd "<XF86Cut>") 'evil-delete
+    (kbd "<XF86Paste>") 'evil-paste-after)
+#+end_src
 
-  (general-def 'normal ";" 'evil-search-forward)  ;; map ; /
-  (general-def 'normal "g c" 'comment-line)
+** TODO Usual Mode
+- <bs> to evil-buffer
+- <tab> to :bn
+#+begin_src emacs-lisp
+  (evil-define-key '(normal visual) 'global
+    ;; map ';' to '/'
+    (kbd ";") 'evil-search-forward)
+#+end_src
+
+** Comment
+#+begin_src emacs-lisp
+  (evil-define-key 'normal 'global (kbd "gc") 'comment-line)
+  (evil-define-key 'visual 'global (kbd "gc") 'comment-region)
 #+end_src
 
 ** File
 #+begin_src emacs-lisp
   (evil-define-key 'normal 'global
-    ;;(kbd "<leader>f")  '(:ignore t :wk "File")
     (kbd "<leader>fe") 'find-file
     (kbd "<leader>fr") 'recentf
     (kbd "<leader>fc") '(lambda () (interactive) (find-file "~/.config/emacs/config.org"))
@@ -163,8 +193,6 @@ Fuzzy search
     (kbd "<leader>bb") 'switch-to-buffer
     (kbd "<leader>bi") 'ibuffer
     (kbd "<leader>bk") 'kill-this-buffer
-    (kbd "<leader>bn") 'next-buffer
-    (kbd "<leader>bp") 'previous-buffer
     (kbd "<leader>br") 'revert-buffer
     )
 #+end_src
@@ -202,29 +230,17 @@ Fuzzy search
       (50  (set-frame-parameter nil 'alpha-background 100))))
 #+end_src
 
-** Help
-#+begin_src emacs-lisp
-  (evil-define-key '(normal visual) 'global
-    (kbd "<leader>hf") 'describe-function
-    (kbd "<leader>hv") 'describe-variable
-    (kbd "<leader>hp") 'describe-package
-    )
-#+end_src
-
 ** Org Mode
 #+begin_src emacs-lisp
-  (evil-define-key '(normal visual) 'global
-    (kbd "<leader>ot") 'org-insert-structure-template
-    (kbd "<leader>ol") 'counsel-org-link
+  (evil-define-key '(normal visual) org-mode-map
     (kbd "<leader>om") 'org-header-skeleton
+    (kbd "<leader>oi") 'org-toggle-inline-images
     )
-#+end_src
-
-** Page Up/Down to Scoll half of page
-#+begin_src emacs-lisp
   (evil-define-key 'nil 'global
-    (kbd "<next>") 'evil-scroll-down
-    (kbd "<prior>") 'evil-scroll-up)
+    (kbd "C-c l")      'org-store-link
+    (kbd "C-c a")      'org-agenda
+    (kbd "C-c c")      'org-capture
+    )
 #+end_src
 
 * Theme
@@ -232,7 +248,7 @@ Fuzzy search
   (use-package doom-themes
     :config
     (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-          doom-themes-enable-italic t) ; if nil, italics is universally disabled
+	  doom-themes-enable-italic t) ; if nil, italics is universally disabled
     (load-theme 'doom-one t)
 
     ;; Enable flashing mode-line on errors
@@ -256,6 +272,8 @@ Fuzzy search
      ((t (:background "#202020" :extend t))))
    '(org-block-end-line
      ((t (:background "#202020" :extend t))))
+   '(org-link
+     ((t (:foreground "#86a586" :extend t))))
    )
 #+end_src
 
@@ -294,12 +312,12 @@ Fuzzy search
   (setq-default show-trailing-whitespace t)
   ;; Disable in these modes
   (dolist (hook '(special-mode-hook
-                  term-mode-hook
-                  comint-mode-hook
-                  compilation-mode-hook
-                  minibuffer-setup-hook))
+		  term-mode-hook
+		  comint-mode-hook
+		  compilation-mode-hook
+		  minibuffer-setup-hook))
     (add-hook hook
-              (lambda () (setq show-trailing-whitespace nil))))
+	      (lambda () (setq show-trailing-whitespace nil))))
 #+end_src
 
 ** Transparency
@@ -313,22 +331,22 @@ Fuzzy search
 ** Centering Content
 #+begin_src emacs-lisp
   (use-package sublimity
-  :config
-  (require 'sublimity-attractive)
-  ;; Keep content on center
-  (setq sublimity-attractive-centering-width 110)
-  ;; Enable smooth scrolling
-  (sublimity-mode 1))
+    :config
+    (require 'sublimity-attractive)
+    ;; Keep content on center
+    (setq sublimity-attractive-centering-width 90)
+    ;; Enable smooth scrolling
+    (sublimity-mode 1))
 #+end_src
 
 ** Show parens
 #+begin_src emacs-lisp
-(define-advice show-paren-function (:around (fn) fix)
-  "Highlight enclosing parens."
-  (cond ((looking-at-p "\\s(") (funcall fn))
-        (t (save-excursion
-             (ignore-errors (backward-up-list))
-             (funcall fn)))))
+  (define-advice show-paren-function (:around (fn) fix)
+    "Highlight enclosing parens."
+    (cond ((looking-at-p "\\s(") (funcall fn))
+	  (t (save-excursion
+	       (ignore-errors (backward-up-list))
+	       (funcall fn)))))
 #+end_src
 
 * Dashboard
@@ -351,23 +369,62 @@ Fuzzy search
 * Org Mode
 ** Agenda
 #+begin_src emacs-lisp
-  (setq org-agenda-files '("~/notes"))
+  ;;(setq org-agenda-files '("~/org"))
+  (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
 #+end_src
 
-** Tempo
-Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block.
-Or use '<C-c><C-,>' keybind without tempo.
-
+** Tags
 #+begin_src emacs-lisp
-  (require 'org-tempo)
+  (setq org-tag-alist '(
+                        (:startgroup . nil)
+                        (:endgroup . nil)
+                        ))
+
+  (setq org-tag-faces
+        '(
+          ;;("meeting"   . (:foreground "yellow1"       :weight bold))
+          ))
 #+end_src
 
-** TODO Time Stamp
-Automatically update a template
-[[https://emacs.stackexchange.com/questions/64753/is-there-a-way-to-have-in-a-org-mode-file-a-placeholder-for-the-current-date-aut]]
-[https://www.gnu.org/software/emacs/manual/html_node/autotype/Timestamps.html]
+** Todo Keyword
 #+begin_src emacs-lisp
-  ;;(add-hook 'before-save-hook #'time-stamp)
+  (setq org-todo-keywords
+        ;;'((sequence "TODO" "WAITING" "|" "DONE")))
+        '((sequence "TODO(t)" "IN-PROGRESS(I!)" "WAITING(w@)" "|" "DONE(d)")))
+
+  (setq org-log-done 'time)
+
+  (setq org-todo-keyword-faces
+        '(
+          ("TODO"        . (:foreground "GoldenRod"  :weight bold))
+          ("IN-PROGRESS" . (:foreground "Cyan"       :weight bold))
+          ("WAITING"     . (:foreground "DarkOrange" :weight bold))
+          ("DONE"        . (:foreground "LimeGreen"  :weight bold))
+          ))
+#+end_src
+
+** Capture Templete
+#+begin_src emacs-lisp
+  (setq org-capture-templates
+        '(
+          ("n" "Add Note to Inbox"
+           entry (file "~/org/inbox.org")
+           "* %?"
+           :empty-lines-before 1)
+          ("t" "Add Todo to Inbox"
+           entry (file "~/org/inbox.org")
+           "* TODO [#B] %?\n:CREATED: %T\n"
+           :empty-lines-before 1)
+          ("l" "Cap with Link")
+          ("ln" "Add Note with File Link to Inbox"
+           entry (file "~/org/inbox.org")
+           "* %?\n%a\n"
+           :empty-lines-before 1)
+          ("lt" "Add Todo with File Link to Inbox"
+           entry (file "~/org/inbox.org")
+           "* TODO [#B] %?\n:CREATED: %T\n%a\n"
+           :empty-lines-before 1)
+          ))
 #+end_src
 
 ** Insert Metadata
@@ -375,7 +432,7 @@ Automatically update a template
 #+begin_src emacs-lisp
   (defun get-file-name-without-extension ()
     (file-name-sans-extension (file-name-nondirectory
-                               (buffer-file-name (window-buffer (minibuffer-selected-window))))))
+			       (buffer-file-name (window-buffer (minibuffer-selected-window))))))
   (defun get-title-by-file-name ()
     (s-titleize
      (subst-char-in-string ?- (string-to-char " ") (get-file-name-without-extension))))
@@ -387,11 +444,22 @@ Automatically update a template
 
   (define-skeleton org-header-skeleton
     "Header info for an Org file."
-    "Description: " "#+TITLE: " (get-title-by-file-name) "\n"
-    "#+DESCRIPTION: " str "\n"
+    "" "#+TITLE: " (get-title-by-file-name) "\n"
     "#+AUTHOR: " user-full-name "\n"
-    "#+DATE: " (format-time-string "%Y-%m-%d") "\n"
-    "#+UPDATED_DATE: " (format-time-string "%Y-%m-%d") "\n")
+    "#+DATE: " (format-time-string "%Y-%m-%d") "\n")
+#+end_src
+
+** Display Inline Images
+#+begin_src emacs-lisp
+  (setq org-startup-with-inline-images t)
+#+end_src
+
+** Tempo
+Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block.
+Or use '<C-c><C-,>' keybind without tempo.
+
+#+begin_src emacs-lisp
+  (require 'org-tempo)
 #+end_src
 
 ** Indent
@@ -399,10 +467,19 @@ Automatically update a template
   (add-hook 'org-mode-hook 'org-indent-mode)
 #+end_src
 
+** Disable Electric Indent
+#+begin_src emacs-lisp
+  (electric-indent-mode -1)
+#+end_src
+
 ** Toc
 #+begin_src emacs-lisp
-  (use-package toc-org
-    :hook (org-mode . toc-org-mode))
+  (use-package toc-org :hook (org-mode . toc-org-mode))
+#+end_src
+
+** Hide Elements
+#+begin_src emacs-lisp
+  (setq org-hide-emphasis-markers t)
 #+end_src
 
 ** Show Hidden Element
@@ -413,20 +490,37 @@ Automatically update a template
     (setq org-appear-trigger 'manual)
     (add-hook 'org-mode-hook 'org-appear-mode)
     (add-hook 'org-mode-hook (lambda ()
-                               (add-hook 'evil-insert-state-entry-hook
-                                         #'org-appear-manual-start
-                                         nil
-                                         t)
-                               (add-hook 'evil-insert-state-exit-hook
-                                         #'org-appear-manual-stop
-                                         nil
-                                         t))))
+			       (add-hook 'evil-insert-state-entry-hook
+					 #'org-appear-manual-start
+					 nil
+					 t)
+			       (add-hook 'evil-insert-state-exit-hook
+					 #'org-appear-manual-stop
+					 nil
+					 t))))
 #+end_src
 
-** Disable Electric Indent
+** Babel
 #+begin_src emacs-lisp
-  (electric-indent-mode -1)
+  (org-babel-do-load-languages
+   'org-babel-load-languages
+   '(
+     (emacs-lisp . t)
+     (shell . t)
+     (python . t)
+     (awk . t)
+     (C . t)
+     ))
 #+end_src
+
+** TODO Export
+[[https://search.uima.duckdns.org/search?q=emacs%20org%20mode%20export%20unable%20resolve%20link&language=auto&time_range=&safesearch=0&categories=general][searching]]
+
+** TODO Archive Doned To-do list
+A key press to move doned item to, say `archive.org` file.
+
+** TODO Automatically DONE When All Children Are Done
+[[https://orgmode.org/manual/Breaking-Down-Tasks.html#Breaking-Down-Tasks][manual for this]]
 
 * Others
 ** Dont Create Backup file
