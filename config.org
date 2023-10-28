@@ -7,17 +7,15 @@
 - [[#install-important-plug][Install Important Plug]]
   - [[#evil-mode][Evil Mode]]
   - [[#vertico][Vertico]]
+  - [[#projectile][Projectile]]
   - [[#which-key][Which Key]]
   - [[#nerd-icons][Nerd Icons]]
 - [[#keybinding][Keybinding]]
   - [[#define-leader-key][Define Leader key]]
   - [[#special-keys][Special Keys]]
-  - [[#usual-mode][Usual Mode]]
-  - [[#comment][Comment]]
+  - [[#normal][Normal]]
   - [[#file][File]]
-  - [[#buffers][Buffers]]
-  - [[#evaluate][Evaluate]]
-  - [[#toggle][Toggle]]
+  - [[#toggle-ui][Toggle UI]]
   - [[#org-mode][Org Mode]]
 - [[#theme][Theme]]
 - [[#mode-line][Mode Line]]
@@ -27,6 +25,7 @@
   - [[#number][Number]]
   - [[#line-warp][Line Warp]]
   - [[#show-trailing-space][Show Trailing Space]]
+  - [[#window-size][Window Size]]
   - [[#transparency][Transparency]]
   - [[#centering-content][Centering Content]]
   - [[#show-parens][Show parens]]
@@ -36,15 +35,17 @@
   - [[#tags][Tags]]
   - [[#keyword][Keyword]]
   - [[#capture-templete][Capture Templete]]
-  - [[#insert-metadata][Insert Metadata]]
+  - [[#auto-insert-metadata][Auto Insert Metadata]]
   - [[#display-inline-images][Display Inline Images]]
   - [[#tempo][Tempo]]
-  - [[#indent][Indent]]
-  - [[#disable-electric-indent][Disable Electric Indent]]
+  - [[#indent-mode][Indent Mode]]
+  - [[#fix-wired-indent][Fix Wired Indent]]
+  - [[#src-block][Src Block]]
   - [[#toc][Toc]]
   - [[#hide-elements][Hide Elements]]
   - [[#show-hidden-element][Show Hidden Element]]
   - [[#babel][Babel]]
+  - [[#insert-links-with-title][Insert Links with Title]]
   - [[#export][Export]]
   - [[#archive-doned-to-do-list][Archive Doned To-do list]]
   - [[#automatically-done-when-all-children-are-done][Automatically DONE When All Children Are Done]]
@@ -54,404 +55,432 @@
 
 * Package Manager
 #+begin_src emacs-lisp
-  ;; Set up package.el to work with MELPA
-  (require 'package)
-  (add-to-list 'package-archives
-	       '("melpa" . "https://melpa.org/packages/"))
-  (package-initialize)
-  (package-refresh-contents)
+;; Set up package.el to work with MELPA
+(require 'package)
+(add-to-list 'package-archives
+	     '("melpa" . "https://melpa.org/packages/"))
+(package-initialize)
+(package-refresh-contents)
 
-  (require 'use-package-ensure)
-  (setq use-package-always-ensure t)
-  ;; Do not keep package up to date
+(require 'use-package-ensure)
+(setq use-package-always-ensure t)
+;; Do not keep package up to date
 #+end_src
 
 * Install Important Plug
 ** Evil Mode
 #+begin_src emacs-lisp
-  (use-package evil
-    :init
-    (setq evil-want-keybinding nil)
-    (setq evil-vsplit-window-right t)
-    (setq evil-split-window-below t)
-    :config
-    (evil-mode 1))
+(use-package evil
+  :init
+  (setq evil-want-keybinding nil)
+  (setq evil-vsplit-window-right t)
+  (setq evil-split-window-below t)
+  :config
+  (evil-mode 1))
 #+end_src
 
 *** Evil Collection
 #+begin_src emacs-lisp
-  (use-package evil-collection
-    :after evil
-    :config
-    (evil-collection-init))
+(use-package evil-collection
+  :after evil
+  :config
+  (evil-collection-init))
 #+end_src
 
 *** Evil Snipe
 2-char searching and repeated f/t
 #+begin_src emacs-lisp
-  (use-package evil-snipe
-    :after evil
-    :config
-    (evil-snipe-mode 1)
-    (evil-snipe-override-mode 1)
-    (setq evil-snipe-scope 'visible))
+(use-package evil-snipe
+  :after evil
+  :config
+  (evil-snipe-mode 1)
+  (evil-snipe-override-mode 1)
+  (setq evil-snipe-scope 'visible))
 #+end_src
 
 *** Evil Surround
 #+begin_src emacs-lisp
-  (use-package evil-surround
-    :after evil
-    :config
-    (global-evil-surround-mode 1))
+(use-package evil-surround
+  :after evil
+  :config
+  (global-evil-surround-mode 1))
 #+end_src
 
 ** Vertico
 The completion mechanism
 #+begin_src emacs-lisp
-  (use-package vertico
-    :config
-    (vertico-mode 1))
+(use-package vertico
+  :init
+  (setq read-file-name-completion-ignore-case t
+        read-buffer-completion-ignore-case t
+        completion-ignore-case t)
+  :config
+  (vertico-mode 1))
 #+end_src
 
 *** Savehist
 History plug for Vertico
 #+begin_src emacs-lisp
-  (use-package savehist
-    :after vertico
-    :config
-    (savehist-mode 1))
+(use-package savehist
+  :after vertico
+  :config
+  (savehist-mode 1))
 #+end_src
 
 *** Hotfuzz
 Fuzzy search
 #+begin_src emacs-lisp
-  (use-package hotfuzz
-    :after vertico
-    :init
-    (setq completion-styles '(hotfuzz))
-    :config
-    (require 'hotfuzz))
+(use-package hotfuzz
+  :after vertico
+  :init
+  (setq completion-styles '(hotfuzz))
+  :config
+  (require 'hotfuzz))
+#+end_src
+
+** Projectile
+#+begin_src emacs-lisp
+(use-package projectile
+  :config
+  (projectile-mode 1)
+  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 #+end_src
 
 ** Which Key
 #+begin_src emacs-lisp
-  (use-package which-key
-    :config
-    (which-key-mode)
-    (setq which-key-idle-delay 0.8))
+(use-package which-key
+  :config
+  (which-key-mode)
+  (setq which-key-idle-delay 0.8))
 #+end_src
 
 ** Nerd Icons
 #+begin_src emacs-lisp
-  (use-package nerd-icons)
+(use-package nerd-icons)
 #+end_src
 
 * Keybinding
 ** Define Leader key
 #+begin_src emacs-lisp
-  (evil-set-leader nil (kbd "SPC"))
-  (evil-set-leader nil (kbd ",") 1) ;; set local leader
+(evil-set-leader nil (kbd "SPC"))
+(evil-set-leader nil (kbd ",") 1) ;; set local leader
 #+end_src
 
 ** Special Keys
 #+begin_src emacs-lisp
-  (evil-define-key 'nil 'global
-    (kbd "<next>") 'evil-scroll-down
-    (kbd "<prior>") 'evil-scroll-up
-    (kbd "<XF86Copy>") 'evil-yank
-    (kbd "<XF86Cut>") 'evil-delete
-    (kbd "<XF86Paste>") 'evil-paste-after)
+(evil-define-key nil 'global
+  (kbd "<next>") 'evil-scroll-down
+  (kbd "<prior>") 'evil-scroll-up
+  (kbd "<XF86Copy>") 'evil-yank
+  (kbd "<XF86Cut>") 'evil-delete
+  (kbd "<XF86Paste>") 'evil-paste-before)
 #+end_src
 
-** TODO Usual Mode
-- <bs> to evil-buffer
-- <tab> to :bn
+** Normal
 #+begin_src emacs-lisp
-  (evil-define-key '(normal visual) 'global
-    ;; map ';' to '/'
-    (kbd ";") 'evil-search-forward)
-#+end_src
+(evil-define-key 'normal 'global
+  (kbd "Y") "y$"  ;; fixing Y
 
-** Comment
-#+begin_src emacs-lisp
-  (evil-define-key 'normal 'global (kbd "gc") 'comment-line)
-  (evil-define-key 'visual 'global (kbd "gc") 'comment-region)
+  (kbd "<leader>rg") 'rgrep  ;; searching context
+  ;;(kbd "") 'next-error
+  ;;(kbd "") 'previous-error
+
+  (kbd "<backspace>") 'evil-buffer  ;; alternate file
+  (kbd ";") 'projectile-find-file  ;; find file
+
+  (kbd "gc") 'comment-line  ;; comment out the line
+
+  (kbd "<leader>ec") '(lambda () (interactive) (load-file "~/.config/emacs/init.el"))  ;; eval the config file
+
+  (kbd "<leader>bb") 'switch-to-buffer
+  (kbd "<leader>bi") 'ibuffer
+  (kbd "<leader>bk") 'kill-this-buffer
+  (kbd "<leader>br") 'revert-buffer
+  )
+
+(evil-define-key 'visual 'global
+  (kbd "<leader>sh") 'shell-command-on-region  ;; execute a cmd on selection
+
+  (kbd "gc") 'comment-region  ;; comment out the region
+
+  (kbd "<leader>er") 'eval-region  ;; eval the selection
+  )
 #+end_src
 
 ** File
 #+begin_src emacs-lisp
-  (evil-define-key 'normal 'global
-    (kbd "<leader>fe") 'find-file
-    (kbd "<leader>fr") 'recentf
-    (kbd "<leader>fc") '(lambda () (interactive) (find-file "~/.config/emacs/config.org"))
-    )
+(evil-define-key 'normal 'global
+  (kbd "<leader>ff") 'find-file
+  (kbd "<leader>fe") 'projectile-find-file
+  (kbd "<leader>fp") 'projectile-switch-project
+  (kbd "<leader>fi") 'projectile-add-known-project
+  (kbd "<leader>fr") 'recentf
+  (kbd "<leader>fc") '(lambda () (interactive) (find-file "~/.config/emacs/config.org"))
+  (kbd "<leader>fo") '(lambda () (interactive) (find-file "~/org/inbox.org"))
+
+  (kbd "<leader>fm") 'make-directory
+  (kbd "<leader>fd") 'delete-file
+  )
 #+end_src
 
-** Buffers
+** Toggle UI
 #+begin_src emacs-lisp
-  (evil-define-key 'normal 'global
-    (kbd "<leader>bb") 'switch-to-buffer
-    (kbd "<leader>bi") 'ibuffer
-    (kbd "<leader>bk") 'kill-this-buffer
-    (kbd "<leader>br") 'revert-buffer
-    )
-#+end_src
-
-** Evaluate
-#+begin_src emacs-lisp
-  (evil-define-key '(normal visual) 'global
-    (kbd "<leader>eb") 'eval-buffer
-    (kbd "<leader>ed") 'eval-defun
-    (kbd "<leader>ee") 'eval-expression
-    (kbd "<leader>el") 'eval-last-sexp
-    (kbd "<leader>er") 'eval-region
-    (kbd "<leader>ef") 'load-file
-    (kbd "<leader>ec") '(lambda () (interactive) (load-file "~/.config/emacs/init.el"))
-    )
-#+end_src
-
-** Toggle
-#+begin_src emacs-lisp
-  (evil-define-key '(normal visual) 'global
-    (kbd "<leader>tn") 'display-line-numbers-mode
-    (kbd "<leader>tw") 'visual-line-mode
-    (kbd "<leader>tt") 'toggle-transparency
-    )
+(evil-define-key '(normal visual) 'global
+  (kbd "<leader>tn") 'display-line-numbers-mode
+  (kbd "<leader>tw") 'visual-line-mode  ;; warp line
+  (kbd "<leader>tt") 'toggle-transparency
+  )
 #+end_src
 
 *** Toggle Transparency
 #+begin_src emacs-lisp
-  (defun toggle-transparency ()
-    "Toggle transparency."
-    (interactive)
-    (pcase (frame-parameter nil 'alpha-background)
-      (100 (set-frame-parameter nil 'alpha-background 90))
-      (90  (set-frame-parameter nil 'alpha-background 50))
-      (50  (set-frame-parameter nil 'alpha-background 100))))
+(defun toggle-transparency ()
+  "Toggle transparency."
+  (interactive)
+  (pcase (frame-parameter nil 'alpha-background)
+    (100 (set-frame-parameter nil 'alpha-background 90))
+    (90  (set-frame-parameter nil 'alpha-background 50))
+    (50  (set-frame-parameter nil 'alpha-background 100))))
 #+end_src
 
 ** Org Mode
 #+begin_src emacs-lisp
-  (evil-define-key '(normal visual) org-mode-map
-    (kbd "<leader>om") 'org-header-skeleton
-    (kbd "<leader>oi") 'org-toggle-inline-images
-    )
-  (evil-define-key 'nil 'global
-    (kbd "C-c l")      'org-store-link
-    (kbd "C-c a")      'org-agenda
-    (kbd "C-c c")      'org-capture
-    )
+(evil-define-key '(normal visual) org-mode-map
+  (kbd "<leader>om") 'org-header-skeleton  ;; insert metadata
+  (kbd "<leader>oi") 'org-toggle-inline-images
+  )
+
+(evil-define-key nil 'global
+  (kbd "C-c l")      'org-store-link
+  (kbd "C-c i")      'org-cliplink  ;; paste link with title
+  (kbd "C-c a")      'org-agenda
+  (kbd "C-c c")      'org-capture
+  (kbd "C-c s")      'org-edit-src-code
+  )
 #+end_src
 
 * Theme
 #+begin_src emacs-lisp
-  (use-package doom-themes
-    :config
-    (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-	  doom-themes-enable-italic t) ; if nil, italics is universally disabled
-    (load-theme 'doom-one t)
+(use-package doom-themes
+  :config
+  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+	doom-themes-enable-italic t) ; if nil, italics is universally disabled
+  (load-theme 'doom-one t)
 
-    ;; Enable flashing mode-line on errors
-    (doom-themes-visual-bell-config)
-    ;; Enable custom neotree theme (all-the-icons must be installed!)
-    (doom-themes-neotree-config)
-    ;; or for treemacs users
-    (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
-    (doom-themes-treemacs-config)
-    ;; Corrects (and improves) org-mode's native fontification.
-    (doom-themes-org-config))
-  ;; Custom colors
-  (set-foreground-color "#bcbcbc")
-  (set-background-color "#161616")
-  (add-to-list 'default-frame-alist '(foreground-color . "#bcbcbc"))
-  (add-to-list 'default-frame-alist '(background-color . "#161616"))
-  (custom-set-faces
-   '(org-block-begin-line
-     ((t (:background "#202020" :extend t))))
-   '(org-block
-     ((t (:background "#202020" :extend t))))
-   '(org-block-end-line
-     ((t (:background "#202020" :extend t))))
-   '(org-link
-     ((t (:foreground "#86a586" :extend t))))
-   )
+  ;; Enable flashing mode-line on errors
+  (doom-themes-visual-bell-config)
+  ;; Enable custom neotree theme (all-the-icons must be installed!)
+  (doom-themes-neotree-config)
+  ;; or for treemacs users
+  (setq doom-themes-treemacs-theme "doom-atom") ; use "doom-colors" for less minimal icon theme
+  (doom-themes-treemacs-config)
+  ;; Corrects (and improves) org-mode's native fontification.
+  (doom-themes-org-config))
+
+;; Custom colors
+(set-foreground-color "#bcbcbc")
+(set-background-color "#161616")
+(add-to-list 'default-frame-alist '(foreground-color . "#bcbcbc"))
+(add-to-list 'default-frame-alist '(background-color . "#161616"))
+(custom-set-faces
+ '(org-block-begin-line
+   ((t (:background "#202020" :extend t))))
+ '(org-block
+   ((t (:background "#202020" :extend t))))
+ '(org-block-end-line
+   ((t (:background "#202020" :extend t))))
+ '(org-link
+   ((t (:foreground "#86a586" :extend t))))
+ )
 #+end_src
 
 * Mode Line
 #+begin_src emacs-lisp
-  (use-package doom-modeline
-    :config
-    (doom-modeline-mode 1))
+(use-package doom-modeline
+  :config
+  (doom-modeline-mode 1))
 #+end_src
 
 * UI
 ** Disable Bars
 #+begin_src emacs-lisp
-  (menu-bar-mode -1)
-  (tool-bar-mode -1)
-  (scroll-bar-mode -1)
+(menu-bar-mode -1)
+(tool-bar-mode -1)
+(scroll-bar-mode -1)
 #+end_src
 
 ** Disable Blink Cursor
 #+begin_src emacs-lisp
-  (blink-cursor-mode 0)
+(blink-cursor-mode 0)
 #+end_src
 
 ** Number
 #+begin_src emacs-lisp
-  (global-display-line-numbers-mode 1)
+(global-display-line-numbers-mode 1)
 #+end_src
 
 ** Line Warp
 #+begin_src emacs-lisp
-  (global-visual-line-mode 1)
+(global-visual-line-mode 1)
 #+end_src
 
 ** Show Trailing Space
 #+begin_src emacs-lisp
-  (setq-default show-trailing-whitespace t)
-  ;; Disable in these modes
-  (dolist (hook '(special-mode-hook
-		  term-mode-hook
-		  comint-mode-hook
-		  compilation-mode-hook
-		  minibuffer-setup-hook))
-    (add-hook hook
-	      (lambda () (setq show-trailing-whitespace nil))))
+(setq-default show-trailing-whitespace t)
+;; Disable in these modes
+(dolist (hook '(special-mode-hook
+		term-mode-hook
+		comint-mode-hook
+		compilation-mode-hook
+		minibuffer-setup-hook))
+  (add-hook hook
+	    (lambda () (setq show-trailing-whitespace nil))))
+#+end_src
+
+** Window Size
+#+begin_src emacs-lisp
+(add-to-list 'default-frame-alist '(width . 110))
+(add-to-list 'default-frame-alist '(height . 40))
 #+end_src
 
 ** Transparency
 #+begin_src emacs-lisp
-  (set-frame-parameter nil 'alpha '(100 100))
-  (add-to-list 'default-frame-alist '(alpha 100 100))
-  (set-frame-parameter nil 'alpha-background 90)
-  (add-to-list 'default-frame-alist '(alpha-background . 90))
+(set-frame-parameter nil 'alpha '(100 100))
+(add-to-list 'default-frame-alist '(alpha 100 100))
+(set-frame-parameter nil 'alpha-background 90)
+(add-to-list 'default-frame-alist '(alpha-background . 90))
 #+end_src
 
 ** Centering Content
 #+begin_src emacs-lisp
-  (use-package sublimity
-    :config
-    (require 'sublimity-attractive)
-    ;; Keep content on center
-    (setq sublimity-attractive-centering-width 90)
-    ;; Enable smooth scrolling
-    (sublimity-mode 1))
+(use-package sublimity
+  :config
+  (require 'sublimity-attractive)
+  ;; Keep content on center
+  (setq sublimity-attractive-centering-width 90)
+  ;; Enable smooth scrolling
+  (sublimity-mode 1))
 #+end_src
 
 ** Show parens
 #+begin_src emacs-lisp
-  (define-advice show-paren-function (:around (fn) fix)
-    "Highlight enclosing parens."
-    (cond ((looking-at-p "\\s(") (funcall fn))
-	  (t (save-excursion
-	       (ignore-errors (backward-up-list))
-	       (funcall fn)))))
+(define-advice show-paren-function (:around (fn) fix)
+  "Highlight enclosing parens."
+  (cond ((looking-at-p "\\s(") (funcall fn))
+	(t (save-excursion
+	     (ignore-errors (backward-up-list))
+	     (funcall fn)))))
 #+end_src
 
 * Dashboard
 #+begin_src emacs-lisp
-  (use-package dashboard
-    :init
-    ;; Use nerd icons
-    (setq dashboard-display-icons-p t) ;; display icons on both GUI and terminal
-    (setq dashboard-icon-type 'nerd-icons) ;; use `nerd-icons' package
-    (setq dashboard-set-heading-icons t)
-    (setq dashboard-set-file-icons t)
-    ;; Config
-    (setq dashboard-center-content t)
-    :config
-    (dashboard-setup-startup-hook)
-    ;; for emacs daemon
-    (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
+(use-package dashboard
+  :init
+  ;; Use nerd icons
+  (setq dashboard-display-icons-p t) ;; display icons on both GUI and terminal
+  (setq dashboard-icon-type 'nerd-icons) ;; use `nerd-icons' package
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  ;; Config
+  (setq dashboard-center-content t)
+  :config
+  (dashboard-setup-startup-hook)
+  ;; for emacs daemon
+  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
 #+end_src
 
 * Org Mode
 ** Agenda
 #+begin_src emacs-lisp
-  ;;(setq org-agenda-files '("~/org"))
-  (setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
+;;(setq org-agenda-files '("~/org"))
+(setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
 #+end_src
 
 ** Tags
 #+begin_src emacs-lisp
-  (setq org-tag-alist '(
-                        (:startgroup . nil)
-                        (:endgroup . nil)
-                        ))
+(setq org-tag-alist '(
+                      (:startgroup . nil)
+                      (:endgroup . nil)
+                      ))
 
-  (setq org-tag-faces
-        '(
-          ;;("meeting"   . (:foreground "yellow1"       :weight bold))
-          ))
+(setq org-tag-faces
+      '(
+        ;;("meeting"   . (:foreground "yellow1"       :weight bold))
+        ))
 #+end_src
 
 ** Todo Keyword
 #+begin_src emacs-lisp
-  (setq org-todo-keywords
-        ;;'((sequence "TODO" "WAITING" "|" "DONE")))
-        '((sequence "TODO(t)" "IN-PROGRESS(I!)" "WAITING(w@)" "|" "DONE(d)")))
+(setq org-todo-keywords
+      ;;'((sequence "TODO" "WAITING" "|" "DONE")))
+      '((sequence "TODO(t)" "IN-PROGRESS(i!)" "WAITING(w@)" "|" "DONE(d)")))
 
-  (setq org-log-done 'time)
+(setq org-log-done 'time)
 
-  (setq org-todo-keyword-faces
-        '(
-          ("TODO"        . (:foreground "GoldenRod"  :weight bold))
-          ("IN-PROGRESS" . (:foreground "Cyan"       :weight bold))
-          ("WAITING"     . (:foreground "DarkOrange" :weight bold))
-          ("DONE"        . (:foreground "LimeGreen"  :weight bold))
-          ))
+(setq org-todo-keyword-faces
+      '(
+        ("TODO"        . (:foreground "GoldenRod"  :weight bold))
+        ("IN-PROGRESS" . (:foreground "Cyan"       :weight bold))
+        ("WAITING"     . (:foreground "DarkOrange" :weight bold))
+        ("DONE"        . (:foreground "LimeGreen"  :weight bold))
+        ))
 #+end_src
 
 ** Capture Templete
 #+begin_src emacs-lisp
-  (setq org-capture-templates
-        '(
-          ("n" "Add Note to Inbox"
-           entry (file "~/org/inbox.org")
-           "* %?"
-           :empty-lines-before 1)
-          ("t" "Add Todo to Inbox"
-           entry (file "~/org/inbox.org")
-           "* TODO [#B] %?\n:CREATED: %T\n"
-           :empty-lines-before 1)
-          ("l" "Cap with Link")
-          ("ln" "Add Note with File Link to Inbox"
-           entry (file "~/org/inbox.org")
-           "* %?\n%a\n"
-           :empty-lines-before 1)
-          ("lt" "Add Todo with File Link to Inbox"
-           entry (file "~/org/inbox.org")
-           "* TODO [#B] %?\n:CREATED: %T\n%a\n"
-           :empty-lines-before 1)
-          ))
+(setq org-capture-templates
+      '(
+        ("n" "Add Note to Inbox"
+         entry (file "~/org/inbox.org")
+         "* %?"
+         :empty-lines-before 1)
+        ("t" "Add Todo to Inbox"
+         entry (file "~/org/inbox.org")
+         "* TODO [#B] %?\n:CREATED: %T\n"
+         :empty-lines-before 1)
+        ("l" "Cap with Link")
+        ("ln" "Add Note with File Link to Inbox"
+         entry (file "~/org/inbox.org")
+         "* %?\n%a\n"
+         :empty-lines-before 1)
+        ("lt" "Add Todo with File Link to Inbox"
+         entry (file "~/org/inbox.org")
+         "* TODO [#B] %?\n:CREATED: %T\n%a\n"
+         :empty-lines-before 1)
+        ))
 #+end_src
 
-** Insert Metadata
-*** Get Title
+** Auto Insert Metadata
+*** Auto Insert
 #+begin_src emacs-lisp
-  (defun get-file-name-without-extension ()
-    (file-name-sans-extension (file-name-nondirectory
-			       (buffer-file-name (window-buffer (minibuffer-selected-window))))))
-  (defun get-title-by-file-name ()
-    (s-titleize
-     (subst-char-in-string ?- (string-to-char " ") (get-file-name-without-extension))))
+(auto-insert-mode t)
+
+(setq user-full-name "uima")
+(add-to-list 'auto-insert-alist
+             '(("\\.\\org\\'" . "Auto insert metadata for org.")
+               "" "#+TITLE: " (get-title-by-file-name) "\n"
+               "#+AUTHOR: " user-full-name "\n"
+               "#+DATE: " (format-time-string "%Y-%m-%d") "\n")
+             )
 #+end_src
 
-*** Skeleton
+*** Get Title Function
 #+begin_src emacs-lisp
-  (setq user-full-name "uima")
-
-  (define-skeleton org-header-skeleton
-    "Header info for an Org file."
-    "" "#+TITLE: " (get-title-by-file-name) "\n"
-    "#+AUTHOR: " user-full-name "\n"
-    "#+DATE: " (format-time-string "%Y-%m-%d") "\n")
+(defun get-file-name-without-extension ()
+  (file-name-sans-extension
+   (file-name-nondirectory
+    (buffer-file-name
+     (window-buffer
+      (minibuffer-selected-window))))))
+(defun get-title-by-file-name ()
+  (s-titleize
+   (subst-char-in-string
+    ?- (string-to-char " ") (get-file-name-without-extension))))
 #+end_src
 
 ** Display Inline Images
 #+begin_src emacs-lisp
-  (setq org-startup-with-inline-images t)
+(setq org-startup-with-inline-images t)
 #+end_src
 
 ** Tempo
@@ -459,58 +488,69 @@ Org-tempo allows for inserting '<s' followed by TAB to expand to begin_src block
 Or use '<C-c><C-,>' keybind without tempo.
 
 #+begin_src emacs-lisp
-  (require 'org-tempo)
+(require 'org-tempo)
 #+end_src
 
-** Indent
+** Indent Mode
 #+begin_src emacs-lisp
-  (add-hook 'org-mode-hook 'org-indent-mode)
+(add-hook 'org-mode-hook 'org-indent-mode)
 #+end_src
 
-** Disable Electric Indent
+** Fix Wired Indent
 #+begin_src emacs-lisp
-  (electric-indent-mode -1)
+(electric-indent-mode -1)
+(setq org-src-preserve-indentation t)  ;; do not put two spaces on the left
+#+end_src
+
+** Src Block
+#+begin_src emacs-lisp
+(setq org-src-window-setup 'current-window)
 #+end_src
 
 ** Toc
 #+begin_src emacs-lisp
-  (use-package toc-org :hook (org-mode . toc-org-mode))
+(use-package toc-org :hook (org-mode . toc-org-mode))
 #+end_src
 
 ** Hide Elements
 #+begin_src emacs-lisp
-  (setq org-hide-emphasis-markers t)
+(setq org-hide-emphasis-markers t)
 #+end_src
 
 ** Show Hidden Element
 #+begin_src emacs-lisp
-  (use-package org-appear
-    :init
-    (setq org-appear-autolinks 1)
-    (setq org-appear-trigger 'manual)
-    (add-hook 'org-mode-hook 'org-appear-mode)
-    (add-hook 'org-mode-hook (lambda ()
-			       (add-hook 'evil-insert-state-entry-hook
-					 #'org-appear-manual-start
-					 nil
-					 t)
-			       (add-hook 'evil-insert-state-exit-hook
-					 #'org-appear-manual-stop
-					 nil
-					 t))))
+(use-package org-appear
+  :init
+  (setq org-appear-autolinks 1)
+  (setq org-appear-trigger 'manual)
+  (add-hook 'org-mode-hook 'org-appear-mode)
+  (add-hook 'org-mode-hook (lambda ()
+			     (add-hook 'evil-insert-state-entry-hook
+				       #'org-appear-manual-start
+				       nil
+				       t)
+			     (add-hook 'evil-insert-state-exit-hook
+				       #'org-appear-manual-stop
+				       nil
+				       t))))
 #+end_src
 
 ** Babel
 #+begin_src emacs-lisp
-  (org-babel-do-load-languages
-   'org-babel-load-languages
-   '(
-     (emacs-lisp . t)
-     (shell . t)
-     (python . t)
-     (awk . t)
-     (C . t)
-     ))
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '(
+   (emacs-lisp . t)
+   (shell . t)
+   (python . t)
+   (awk . t)
+   (C . t)
+   ))
+#+end_src
+
+** Insert Links with Title
+#+begin_src emacs-lisp
+(use-package org-cliplink)
 #+end_src
 
 ** TODO Export
@@ -525,10 +565,10 @@ A key press to move doned item to, say `archive.org` file.
 * Others
 ** Dont Create Backup file
 #+begin_src emacs-lisp
-  (setq make-backup-files nil)
+(setq make-backup-files nil)
 #+end_src
 
 ** Remove Trailing Space When Save
 #+begin_src emacs-lisp
-  (add-hook 'before-save-hook 'delete-trailing-whitespace)
+(add-hook 'before-save-hook 'delete-trailing-whitespace)
 #+end_src
