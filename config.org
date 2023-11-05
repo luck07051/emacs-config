@@ -31,6 +31,7 @@
   - [[#show-parens][Show parens]]
 - [[#dashboard][Dashboard]]
 - [[#org-mode-1][Org Mode]]
+  - [[#org-roam][Org Roam]]
   - [[#agenda][Agenda]]
   - [[#tags][Tags]]
   - [[#keyword][Keyword]]
@@ -52,6 +53,7 @@
 - [[#others][Others]]
   - [[#dont-create-backup-file][Dont Create Backup file]]
   - [[#remove-trailing-space-when-save][Remove Trailing Space When Save]]
+  - [[#spell-checker][Spell checker]]
 
 * Package Manager
 #+begin_src emacs-lisp
@@ -195,6 +197,7 @@ Fuzzy search
   (kbd "<leader>bb") 'switch-to-buffer
   (kbd "<leader>bi") 'ibuffer
   (kbd "<leader>bk") 'kill-this-buffer
+  (kbd "<leader>bK") 'kill-other-buffer
   (kbd "<leader>br") 'revert-buffer
   )
 
@@ -205,6 +208,14 @@ Fuzzy search
 
   (kbd "<leader>er") 'eval-region  ;; eval the selection
   )
+#+end_src
+
+*** Kill other buffer
+#+begin_src emacs-lisp
+(defun kill-other-buffers ()
+  "Kill all other buffers."
+  (interactive)
+    (mapc 'kill-buffer (cdr (buffer-list (current-buffer)))))
 #+end_src
 
 ** File
@@ -390,6 +401,32 @@ Fuzzy search
 #+end_src
 
 * Org Mode
+** Org Roam
+#+begin_src emacs-lisp
+(use-package org-roam
+  :custom
+  (org-roam-directory (file-truename "~/org"))
+  (org-roam-completion-everywhere t)
+  (org-roam-node-display-template
+   (concat "${title:*} " (propertize "${tags:15}" 'face 'org-tag)))
+  (org-roam-capture-templates
+   '(("d" "default" plain "\n%?"
+      :target (file+head
+               "%<%Y%m%d%H%M%S>-${slug}.org"
+               "#+title: ${title}\n#+data: %U\n#+filetags:\n")
+      :unnarrowed t)
+     ))
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+         ("C-c n f" . org-roam-node-find)
+         ("C-c n g" . org-roam-graph)
+         ("C-c n i" . org-roam-node-insert)
+         ("C-c n c" . org-roam-capture)
+         :map org-mode-map
+         ("C-M-i"   . completion-at-point))
+  :config
+  (org-roam-setup))
+#+end_src
+
 ** Agenda
 #+begin_src emacs-lisp
 ;;(setq org-agenda-files '("~/org"))
@@ -453,15 +490,15 @@ Fuzzy search
 ** Auto Insert Metadata
 *** Auto Insert
 #+begin_src emacs-lisp
-(auto-insert-mode t)
-
-(setq user-full-name "uima")
-(add-to-list 'auto-insert-alist
-             '(("\\.\\org\\'" . "Auto insert metadata for org.")
-               "" "#+TITLE: " (get-title-by-file-name) "\n"
-               "#+AUTHOR: " user-full-name "\n"
-               "#+DATE: " (format-time-string "%Y-%m-%d") "\n")
-             )
+;; (auto-insert-mode t)
+;;
+;; (setq user-full-name "uima")
+;; (add-to-list 'auto-insert-alist
+;;              '(("\\.\\org\\'" . "Auto insert metadata for org.")
+;;                "" "#+TITLE: " (get-title-by-file-name) "\n"
+;;                "#+AUTHOR: " user-full-name "\n"
+;;                "#+DATE: " (format-time-string "%Y-%m-%d") "\n")
+;;              )
 #+end_src
 
 *** Get Title Function
@@ -571,4 +608,9 @@ A key press to move doned item to, say `archive.org` file.
 ** Remove Trailing Space When Save
 #+begin_src emacs-lisp
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
+#+end_src
+
+** Spell checker
+#+begin_src emacs-lisp
+(setq ispell-program-name "/usr/bin/aspell")
 #+end_src
