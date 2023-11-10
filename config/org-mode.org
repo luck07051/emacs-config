@@ -5,6 +5,7 @@
 * TOC                                                                   :TOC:
 - [[#keybind][Keybind]]
 - [[#org-roam][Org Roam]]
+  - [[#roam-ui][Roam UI]]
 - [[#agenda][Agenda]]
 - [[#tags][Tags]]
 - [[#keyword][Keyword]]
@@ -33,8 +34,8 @@
   )
 
 (evil-define-key nil 'global
-  (kbd "C-c l")      'org-store-link
-  (kbd "C-c i")      'org-cliplink  ;; paste link with title
+  ;; (kbd "C-c l")      'org-store-link
+  (kbd "C-c k")      'org-cliplink  ;; paste link with title
   (kbd "C-c a")      'org-agenda
   (kbd "C-c c")      'org-capture
   (kbd "C-c s")      'org-edit-src-code
@@ -56,15 +57,23 @@
                "#+title: ${title}\n#+data: %U\n#+filetags:\n")
       :unnarrowed t)
      ))
-  :bind (("C-c n l" . org-roam-buffer-toggle)
-         ("C-c n f" . org-roam-node-find)
+  :bind (("C-c l" . org-roam-buffer-toggle)
+         ("C-c f" . org-roam-node-find)
+         ("C-c i" . org-roam-node-insert)
          ("C-c n g" . org-roam-graph)
-         ("C-c n i" . org-roam-node-insert)
          ("C-c n c" . org-roam-capture)
          :map org-mode-map
          ("C-M-i"   . completion-at-point))
   :config
   (org-roam-setup))
+#+end_src
+
+** Roam UI
+#+begin_src emacs-lisp
+(use-package websocket)
+(use-package simple-httpd)
+(use-package f)
+(use-package org-roam-ui)
 #+end_src
 
 * Agenda

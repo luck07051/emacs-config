@@ -28,7 +28,7 @@
   - [[#transparency][Transparency]]
   - [[#centering-content][Centering Content]]
   - [[#show-parens][Show parens]]
-- [[#dashboard][Dashboard]]
+  - [[#scratch-message][Scratch message]]
 - [[#others][Others]]
   - [[#dont-create-backup-file][Dont Create Backup file]]
   - [[#remove-trailing-space-when-save][Remove Trailing Space When Save]]
@@ -40,12 +40,9 @@
 (require 'package)
 (add-to-list 'package-archives
 	     '("melpa" . "https://melpa.org/packages/"))
-(package-initialize)
-(package-refresh-contents)
 
 (require 'use-package-ensure)
 (setq use-package-always-ensure t)
-;; Do not keep package up to date
 #+end_src
 
 * Install Important Plug
@@ -154,7 +151,7 @@ Fuzzy search
   (kbd "<prior>") 'evil-scroll-up
   (kbd "<XF86Copy>") 'evil-yank
   (kbd "<XF86Cut>") 'evil-delete
-  (kbd "<XF86Paste>") 'evil-paste-before)
+  (kbd "<XF86Paste>") 'evil-paste-after)
 #+end_src
 
 ** Normal
@@ -346,21 +343,9 @@ Fuzzy search
 	     (funcall fn)))))
 #+end_src
 
-* Dashboard
+** Scratch message
 #+begin_src emacs-lisp
-(use-package dashboard
-  :init
-  ;; Use nerd icons
-  (setq dashboard-display-icons-p t) ;; display icons on both GUI and terminal
-  (setq dashboard-icon-type 'nerd-icons) ;; use `nerd-icons' package
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
-  ;; Config
-  (setq dashboard-center-content t)
-  :config
-  (dashboard-setup-startup-hook)
-  ;; for emacs daemon
-  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
+(setq initial-scratch-message "")
 #+end_src
 
 * Others
