@@ -3,23 +3,27 @@
 #+DESCRIPTION: The emacs config file
 
 * TOC                                                                   :TOC:
-- [[#package-manager][Package Manager]]
-- [[#install-important-plug][Install Important Plug]]
-  - [[#evil-mode][Evil Mode]]
-  - [[#vertico][Vertico]]
-  - [[#projectile][Projectile]]
-  - [[#which-key][Which Key]]
-  - [[#nerd-icons][Nerd Icons]]
+- [[#evil-mode][Evil Mode]]
+  - [[#dont-use-clipboard-as-default-register][Don't use clipboard as default Register]]
+  - [[#evil-collection][Evil Collection]]
+  - [[#evil-snipe][Evil Snipe]]
+  - [[#evil-surround][Evil Surround]]
+- [[#vertico][Vertico]]
+  - [[#savehist][Savehist]]
+  - [[#hotfuzz][Hotfuzz]]
+- [[#projectile][Projectile]]
+- [[#which-key][Which Key]]
+- [[#nerd-icons][Nerd Icons]]
 - [[#keybinding][Keybinding]]
   - [[#define-leader-key][Define Leader key]]
-  - [[#special-keys][Special Keys]]
   - [[#normal][Normal]]
+  - [[#copy-paste][Copy Paste]]
   - [[#file][File]]
   - [[#toggle-ui][Toggle UI]]
 - [[#theme][Theme]]
 - [[#mode-line][Mode Line]]
 - [[#ui][UI]]
-  - [[#disable-bars][Disable Bars]]
+  - [[#disable-gui-bars][Disable GUI Bars]]
   - [[#disable-blink-cursor][Disable Blink Cursor]]
   - [[#number][Number]]
   - [[#line-warp][Line Warp]]
@@ -28,25 +32,13 @@
   - [[#transparency][Transparency]]
   - [[#centering-content][Centering Content]]
   - [[#show-parens][Show parens]]
-  - [[#scratch-message][Scratch message]]
 - [[#others][Others]]
-  - [[#dont-create-backup-file][Dont Create Backup file]]
-  - [[#remove-trailing-space-when-save][Remove Trailing Space When Save]]
+  - [[#dont-create-backup-file][Dont create backup file]]
+  - [[#remove-trailing-space-when-save][Remove trailing space when save]]
   - [[#spell-checker][Spell checker]]
+  - [[#scratch-message][Scratch message]]
 
-* Package Manager
-#+begin_src emacs-lisp
-;; Set up package.el to work with MELPA
-(require 'package)
-(add-to-list 'package-archives
-	     '("melpa" . "https://melpa.org/packages/"))
-
-(require 'use-package-ensure)
-(setq use-package-always-ensure t)
-#+end_src
-
-* Install Important Plug
-** Evil Mode
+* Evil Mode
 #+begin_src emacs-lisp
 (use-package evil
   :init
@@ -57,7 +49,12 @@
   (evil-mode 1))
 #+end_src
 
-*** Evil Collection
+** Don't use clipboard as default Register
+#+begin_src emacs-lisp
+(setq select-enable-clipboard nil)
+#+end_src
+
+** Evil Collection
 #+begin_src emacs-lisp
 (use-package evil-collection
   :after evil
@@ -65,7 +62,7 @@
   (evil-collection-init))
 #+end_src
 
-*** Evil Snipe
+** Evil Snipe
 2-char searching and repeated f/t
 #+begin_src emacs-lisp
 (use-package evil-snipe
@@ -76,7 +73,7 @@
   (setq evil-snipe-scope 'visible))
 #+end_src
 
-*** Evil Surround
+** Evil Surround
 #+begin_src emacs-lisp
 (use-package evil-surround
   :after evil
@@ -84,7 +81,7 @@
   (global-evil-surround-mode 1))
 #+end_src
 
-** Vertico
+* Vertico
 The completion mechanism
 #+begin_src emacs-lisp
 (use-package vertico
@@ -96,7 +93,7 @@ The completion mechanism
   (vertico-mode 1))
 #+end_src
 
-*** Savehist
+** Savehist
 History plug for Vertico
 #+begin_src emacs-lisp
 (use-package savehist
@@ -105,7 +102,7 @@ History plug for Vertico
   (savehist-mode 1))
 #+end_src
 
-*** Hotfuzz
+** Hotfuzz
 Fuzzy search
 #+begin_src emacs-lisp
 (use-package hotfuzz
@@ -116,7 +113,7 @@ Fuzzy search
   (require 'hotfuzz))
 #+end_src
 
-** Projectile
+* Projectile
 #+begin_src emacs-lisp
 (use-package projectile
   :config
@@ -124,7 +121,7 @@ Fuzzy search
   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
 #+end_src
 
-** Which Key
+* Which Key
 #+begin_src emacs-lisp
 (use-package which-key
   :config
@@ -132,7 +129,7 @@ Fuzzy search
   (setq which-key-idle-delay 0.8))
 #+end_src
 
-** Nerd Icons
+* Nerd Icons
 #+begin_src emacs-lisp
 (use-package nerd-icons)
 #+end_src
@@ -144,21 +141,13 @@ Fuzzy search
 (evil-set-leader nil (kbd ",") 1) ;; set local leader
 #+end_src
 
-** Special Keys
+** Normal
 #+begin_src emacs-lisp
 (evil-define-key nil 'global
   (kbd "<next>") 'evil-scroll-down
-  (kbd "<prior>") 'evil-scroll-up
-  (kbd "<XF86Copy>") 'evil-yank
-  (kbd "<XF86Cut>") 'evil-delete
-  (kbd "<XF86Paste>") 'evil-paste-after)
-#+end_src
+  (kbd "<prior>") 'evil-scroll-up)
 
-** Normal
-#+begin_src emacs-lisp
 (evil-define-key 'normal 'global
-  (kbd "Y") "y$"  ;; fixing Y
-
   (kbd "<leader>rg") 'rgrep  ;; searching context
   ;;(kbd "") 'next-error
   ;;(kbd "") 'previous-error
@@ -186,12 +175,40 @@ Fuzzy search
   )
 #+end_src
 
-*** Kill other buffer
+*** TODO Kill other buffer
+dont works as keybind
 #+begin_src emacs-lisp
 (defun kill-other-buffers ()
   "Kill all other buffers."
   (interactive)
-    (mapc 'kill-buffer (cdr (buffer-list (current-buffer)))))
+  (mapc 'kill-buffer (cdr (buffer-list (current-buffer)))))
+#+end_src
+
+** Copy Paste
+#+begin_src emacs-lisp
+(evil-define-key 'normal 'global (kbd "Y") "y$")
+
+(evil-define-key nil 'global
+  (kbd "<XF86Copy>") 'my:yank
+  (kbd "<XF86Paste>") "\"+p"
+  (kbd "<XF86Cut>") 'my:delete)
+
+(evil-define-key '(normal visual) 'global
+  (kbd "<leader>y") 'my:yank
+  (kbd "<leader>Y") "\"+y$"
+  (kbd "<leader>p") "\"+p"
+  (kbd "<leader>P") "\"+P"
+  (kbd "<leader>d") 'my:delete
+  (kbd "<leader>D") "\"+D")
+
+(defun my:yank ()
+  (interactive)
+  (evil-use-register ?+)
+  (call-interactively 'evil-yank))
+(defun my:delete ()
+  (interactive)
+  (evil-use-register ?+)
+  (call-interactively 'evil-delete))
 #+end_src
 
 ** File
@@ -273,11 +290,11 @@ Fuzzy search
 #+end_src
 
 * UI
-** Disable Bars
+** Disable GUI Bars
 #+begin_src emacs-lisp
-(menu-bar-mode -1)
-(tool-bar-mode -1)
-(scroll-bar-mode -1)
+(menu-bar-mode 0)
+(tool-bar-mode 0)
+(scroll-bar-mode 0)
 #+end_src
 
 ** Disable Blink Cursor
@@ -343,18 +360,13 @@ Fuzzy search
 	     (funcall fn)))))
 #+end_src
 
-** Scratch message
-#+begin_src emacs-lisp
-(setq initial-scratch-message "")
-#+end_src
-
 * Others
-** Dont Create Backup file
+** Dont create backup file
 #+begin_src emacs-lisp
 (setq make-backup-files nil)
 #+end_src
 
-** Remove Trailing Space When Save
+** Remove trailing space when save
 #+begin_src emacs-lisp
 (add-hook 'before-save-hook 'delete-trailing-whitespace)
 #+end_src
@@ -362,4 +374,9 @@ Fuzzy search
 ** Spell checker
 #+begin_src emacs-lisp
 (setq ispell-program-name "/usr/bin/aspell")
+#+end_src
+
+** Scratch message
+#+begin_src emacs-lisp
+(setq initial-scratch-message "")
 #+end_src
