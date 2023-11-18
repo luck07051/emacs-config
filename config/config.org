@@ -116,6 +116,9 @@ Fuzzy search
 * Projectile
 #+begin_src emacs-lisp
 (use-package projectile
+  :init
+  (setq projectile-enable-caching t)
+  (setq projectile-indexing-method 'native)
   :config
   (projectile-mode 1)
   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
@@ -190,7 +193,7 @@ dont works as keybind
 
 (evil-define-key nil 'global
   (kbd "<XF86Copy>") 'my:yank
-  (kbd "<XF86Paste>") "\"+p"
+  (kbd "<XF86Paste>") 'my:paste
   (kbd "<XF86Cut>") 'my:delete)
 
 (evil-define-key '(normal visual) 'global
@@ -205,6 +208,10 @@ dont works as keybind
   (interactive)
   (evil-use-register ?+)
   (call-interactively 'evil-yank))
+(defun my:paste ()
+  (interactive)
+  (evil-use-register ?+)
+  (call-interactively 'evil-paste-after))
 (defun my:delete ()
   (interactive)
   (evil-use-register ?+)

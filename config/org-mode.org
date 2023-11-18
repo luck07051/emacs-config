@@ -4,6 +4,7 @@
 
 * TOC                                                                   :TOC:
 - [[#keybind][Keybind]]
+  - [[#custom-function][Custom function]]
 - [[#org-roam][Org Roam]]
   - [[#roam-ui][Roam UI]]
 - [[#agenda][Agenda]]
@@ -21,6 +22,7 @@
 - [[#hide-elements][Hide Elements]]
 - [[#show-hidden-element][Show Hidden Element]]
 - [[#babel][Babel]]
+  - [[#dont-comfirm-when-evaluate][Dont comfirm when evaluate]]
 - [[#insert-links-with-title][Insert Links with Title]]
 - [[#export][Export]]
 - [[#archive-doned-to-do-list][Archive Doned To-do list]]
@@ -35,11 +37,19 @@
 
 (evil-define-key nil 'global
   ;; (kbd "C-c l")      'org-store-link
-  (kbd "C-c k")      'org-cliplink  ;; paste link with title
+  (kbd "C-c k")      'my-paste-url
   (kbd "C-c a")      'org-agenda
   (kbd "C-c c")      'org-capture
   (kbd "C-c s")      'org-edit-src-code
   )
+#+end_src
+** Custom function
+#+begin_src emacs-lisp
+(defun my-paste-url ()
+  "Paste url with title."
+  (interactive)
+  (evil-set-register ?\" (evil-get-register ?*))
+  (org-cliplink))
 #+end_src
 
 * Org Roam
@@ -224,6 +234,11 @@
    (awk . t)
    (C . t)
    ))
+#+end_src
+
+** Dont comfirm when evaluate
+#+begin_src emacs-lisp
+(setq org-confirm-babel-evaluate nil)
 #+end_src
 
 * Insert Links with Title
