@@ -3,40 +3,56 @@
 #+DESCRIPTION: The emacs config file
 
 * TOC                                                                   :TOC:
+- [[#package-manager][Package Manager]]
 - [[#evil-mode][Evil Mode]]
   - [[#dont-use-clipboard-as-default-register][Don't use clipboard as default Register]]
   - [[#evil-collection][Evil Collection]]
   - [[#evil-snipe][Evil Snipe]]
   - [[#evil-surround][Evil Surround]]
 - [[#vertico][Vertico]]
+  - [[#marginalia][Marginalia]]
   - [[#savehist][Savehist]]
   - [[#hotfuzz][Hotfuzz]]
-- [[#projectile][Projectile]]
-- [[#which-key][Which Key]]
-- [[#nerd-icons][Nerd Icons]]
 - [[#keybinding][Keybinding]]
   - [[#define-leader-key][Define Leader key]]
   - [[#normal][Normal]]
   - [[#copy-paste][Copy Paste]]
   - [[#file][File]]
+  - [[#buffer][Buffer]]
   - [[#toggle-ui][Toggle UI]]
 - [[#theme][Theme]]
 - [[#mode-line][Mode Line]]
 - [[#ui][UI]]
   - [[#disable-gui-bars][Disable GUI Bars]]
   - [[#disable-blink-cursor][Disable Blink Cursor]]
-  - [[#number][Number]]
   - [[#line-warp][Line Warp]]
   - [[#show-trailing-space][Show Trailing Space]]
-  - [[#window-size][Window Size]]
+  - [[#default-window-size][Default Window Size]]
   - [[#transparency][Transparency]]
   - [[#centering-content][Centering Content]]
   - [[#show-parens][Show parens]]
-- [[#others][Others]]
+  - [[#rainbow-delimiters][Rainbow Delimiters]]
+- [[#misc][Misc]]
+  - [[#which-key][Which Key]]
+  - [[#helpful][Helpful]]
   - [[#dont-create-backup-file][Dont create backup file]]
   - [[#remove-trailing-space-when-save][Remove trailing space when save]]
   - [[#spell-checker][Spell checker]]
   - [[#scratch-message][Scratch message]]
+
+* Package Manager
+#+begin_src emacs-lisp
+;; Set up package.el to work with MELPA
+(require 'package)
+(add-to-list 'package-archives
+	     '("melpa" . "https://melpa.org/packages/"))
+(package-initialize)
+(unless package-archive-contents
+  (packae-refresh-contents))
+
+(require 'use-package-ensure)
+(setq use-package-always-ensure t)
+#+end_src
 
 * Evil Mode
 #+begin_src emacs-lisp
@@ -56,10 +72,10 @@
 
 ** Evil Collection
 #+begin_src emacs-lisp
-(use-package evil-collection
-  :after evil
-  :config
-  (evil-collection-init))
+;; (use-package evil-collection
+;;   :after evil
+;;   :config
+;;   (evil-collection-init))
 #+end_src
 
 ** Evil Snipe
@@ -93,6 +109,15 @@ The completion mechanism
   (vertico-mode 1))
 #+end_src
 
+** Marginalia
+Marginalia in the minibuffer
+#+begin_src emacs-lisp
+(use-package marginalia
+  :after vertico
+  :config
+  (marginalia-mode 1))
+#+end_src
+
 ** Savehist
 History plug for Vertico
 #+begin_src emacs-lisp
@@ -113,78 +138,42 @@ Fuzzy search
   (require 'hotfuzz))
 #+end_src
 
-* Projectile
-#+begin_src emacs-lisp
-(use-package projectile
-  :init
-  (setq projectile-enable-caching t)
-  (setq projectile-indexing-method 'native)
-  :config
-  (projectile-mode 1)
-  (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map))
-#+end_src
-
-* Which Key
-#+begin_src emacs-lisp
-(use-package which-key
-  :config
-  (which-key-mode)
-  (setq which-key-idle-delay 0.8))
-#+end_src
-
-* Nerd Icons
-#+begin_src emacs-lisp
-(use-package nerd-icons)
-#+end_src
-
 * Keybinding
 ** Define Leader key
 #+begin_src emacs-lisp
-(evil-set-leader nil (kbd "SPC"))
-(evil-set-leader nil (kbd ",") 1) ;; set local leader
+(evil-set-leader nil (kbd "SPC"))  ;; set leader key
+(evil-set-leader nil (kbd ",") 1)  ;; set local leader
 #+end_src
 
 ** Normal
 #+begin_src emacs-lisp
 (evil-define-key nil 'global
-  (kbd "<next>") 'evil-scroll-down
-  (kbd "<prior>") 'evil-scroll-up)
+  (kbd "C-x C-b") 'switch-to-buffer  ;; no more releasing finger
+  ;; (kbd "C-x C-b") 'scratch-buffer
+  (kbd "<escape>") 'keyboard-escape-quit  ;; esc to quit prompts
+  (kbd "<next>") 'evil-scroll-down  ;; scorll half page down
+  (kbd "<prior>") 'evil-scroll-up)  ;; scorll half page up
 
 (evil-define-key 'normal 'global
+  (kbd "C-p") 'project-switch-project  ;; switch project
+  (kbd ";") 'project-find-file  ;; find file
+  (kbd "<backspace>") 'evil-buffer  ;; alternate file
+  (kbd "gc") 'comment-line  ;; comment out the line
+
   (kbd "<leader>rg") 'rgrep  ;; searching context
   ;;(kbd "") 'next-error
   ;;(kbd "") 'previous-error
 
-  (kbd "<backspace>") 'evil-buffer  ;; alternate file
-  (kbd ";") 'projectile-find-file  ;; find file
-
-  (kbd "gc") 'comment-line  ;; comment out the line
-
-  (kbd "<leader>ec") '(lambda () (interactive) (load-file "~/.config/emacs/init.el"))  ;; eval the config file
-
-  (kbd "<leader>bb") 'switch-to-buffer
-  (kbd "<leader>bi") 'ibuffer
-  (kbd "<leader>bk") 'kill-this-buffer
-  (kbd "<leader>bK") 'kill-other-buffer
-  (kbd "<leader>br") 'revert-buffer
+  (kbd "<leader>ec")
+  '(lambda () (interactive)
+     (load-file "~/.config/emacs/init.el"))  ;; eval the config file
   )
 
 (evil-define-key 'visual 'global
-  (kbd "<leader>sh") 'shell-command-on-region  ;; execute a cmd on selection
-
   (kbd "gc") 'comment-region  ;; comment out the region
-
+  (kbd "<leader>sh") 'shell-command-on-region  ;; execute a cmd on selection
   (kbd "<leader>er") 'eval-region  ;; eval the selection
   )
-#+end_src
-
-*** TODO Kill other buffer
-dont works as keybind
-#+begin_src emacs-lisp
-(defun kill-other-buffers ()
-  "Kill all other buffers."
-  (interactive)
-  (mapc 'kill-buffer (cdr (buffer-list (current-buffer)))))
 #+end_src
 
 ** Copy Paste
@@ -192,27 +181,30 @@ dont works as keybind
 (evil-define-key 'normal 'global (kbd "Y") "y$")
 
 (evil-define-key nil 'global
-  (kbd "<XF86Copy>") 'my:yank
-  (kbd "<XF86Paste>") 'my:paste
-  (kbd "<XF86Cut>") 'my:delete)
+  (kbd "<XF86Copy>") 'my-clip-y
+  (kbd "<XF86Paste>") 'my-clip-p
+  (kbd "<XF86Cut>") 'my-clip-d)
 
 (evil-define-key '(normal visual) 'global
-  (kbd "<leader>y") 'my:yank
+  (kbd "<leader>y") 'my-clip-y
   (kbd "<leader>Y") "\"+y$"
-  (kbd "<leader>p") "\"+p"
+  (kbd "<leader>p") 'my-clip-p
   (kbd "<leader>P") "\"+P"
-  (kbd "<leader>d") 'my:delete
+  (kbd "<leader>d") 'my-clip-d
   (kbd "<leader>D") "\"+D")
+#+end_src
 
-(defun my:yank ()
+*** Clipboard yank / paste / cut function
+#+begin_src emacs-lisp
+(defun my-clip-y ()
   (interactive)
   (evil-use-register ?+)
   (call-interactively 'evil-yank))
-(defun my:paste ()
+(defun my-clip-p ()
   (interactive)
   (evil-use-register ?+)
   (call-interactively 'evil-paste-after))
-(defun my:delete ()
+(defun my-clip-d ()
   (interactive)
   (evil-use-register ?+)
   (call-interactively 'evil-delete))
@@ -222,9 +214,8 @@ dont works as keybind
 #+begin_src emacs-lisp
 (evil-define-key 'normal 'global
   (kbd "<leader>ff") 'find-file
-  (kbd "<leader>fe") 'projectile-find-file
-  (kbd "<leader>fp") 'projectile-switch-project
-  (kbd "<leader>fi") 'projectile-add-known-project
+  (kbd "<leader>fe") 'project-find-file
+  (kbd "<leader>fp") 'project-switch-project
   (kbd "<leader>fr") 'recentf
   (kbd "<leader>fc") '(lambda () (interactive) (find-file "~/.config/emacs/config/config.org"))
   (kbd "<leader>fo") '(lambda () (interactive) (find-file "~/org/inbox.org"))
@@ -232,6 +223,24 @@ dont works as keybind
   (kbd "<leader>fm") 'make-directory
   (kbd "<leader>fd") 'delete-file
   )
+#+end_src
+
+** Buffer
+#+begin_src emacs-lisp
+(evil-define-key 'normal 'global
+  (kbd "<leader>bi") 'ibuffer
+  (kbd "<leader>bk") 'kill-this-buffer
+  (kbd "<leader>bK") 'kill-other-buffers
+  (kbd "<leader>br") 'revert-buffer
+  )
+#+end_src
+
+*** Function of Kill other buffers
+#+begin_src emacs-lisp
+(defun kill-other-buffers ()
+  "Kill all other buffers."
+  (interactive)
+  (mapc 'kill-buffer (cdr (buffer-list (current-buffer)))))
 #+end_src
 
 ** Toggle UI
@@ -309,11 +318,6 @@ dont works as keybind
 (blink-cursor-mode 0)
 #+end_src
 
-** Number
-#+begin_src emacs-lisp
-(global-display-line-numbers-mode 1)
-#+end_src
-
 ** Line Warp
 #+begin_src emacs-lisp
 (global-visual-line-mode 1)
@@ -324,15 +328,14 @@ dont works as keybind
 (setq-default show-trailing-whitespace t)
 ;; Disable in these modes
 (dolist (hook '(special-mode-hook
-		term-mode-hook
-		comint-mode-hook
-		compilation-mode-hook
-		minibuffer-setup-hook))
-  (add-hook hook
-	    (lambda () (setq show-trailing-whitespace nil))))
+                term-mode-hook
+                comint-mode-hook
+                compilation-mode-hook
+                minibuffer-setup-hook))
+  (add-hook hook (lambda () (setq show-trailing-whitespace nil))))
 #+end_src
 
-** Window Size
+** Default Window Size
 #+begin_src emacs-lisp
 (add-to-list 'default-frame-alist '(width . 110))
 (add-to-list 'default-frame-alist '(height . 40))
@@ -341,8 +344,8 @@ dont works as keybind
 ** Transparency
 #+begin_src emacs-lisp
 (set-frame-parameter nil 'alpha '(100 100))
-(add-to-list 'default-frame-alist '(alpha 100 100))
 (set-frame-parameter nil 'alpha-background 90)
+(add-to-list 'default-frame-alist '(alpha 100 100))
 (add-to-list 'default-frame-alist '(alpha-background . 90))
 #+end_src
 
@@ -353,7 +356,6 @@ dont works as keybind
   (require 'sublimity-attractive)
   ;; Keep content on center
   (setq sublimity-attractive-centering-width 90)
-  ;; Enable smooth scrolling
   (sublimity-mode 1))
 #+end_src
 
@@ -367,7 +369,30 @@ dont works as keybind
 	     (funcall fn)))))
 #+end_src
 
-* Others
+** Rainbow Delimiters
+#+begin_src emacs-lisp
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+#+end_src
+
+* Misc
+** Which Key
+#+begin_src emacs-lisp
+(use-package which-key
+  :config
+  (which-key-mode))
+#+end_src
+
+** Helpful
+#+begin_src emacs-lisp
+(use-package helpful
+  :bind
+  ([remap describe-function] . helpful-callable)
+  ([remap describe-variable] . helpful-variable)
+  ([remap describe-key] . helpful-key)
+  ([remap describe-command] . helpful-command)
+  ("C-h h" . helpful-at-point))
+#+end_src
 ** Dont create backup file
 #+begin_src emacs-lisp
 (setq make-backup-files nil)

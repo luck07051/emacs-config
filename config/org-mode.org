@@ -4,23 +4,20 @@
 
 * TOC                                                                   :TOC:
 - [[#keybind][Keybind]]
-  - [[#custom-function][Custom function]]
+  - [[#my-function][My function]]
 - [[#org-roam][Org Roam]]
   - [[#roam-ui][Roam UI]]
 - [[#agenda][Agenda]]
 - [[#tags][Tags]]
 - [[#keyword][Keyword]]
 - [[#capture-templete][Capture Templete]]
-- [[#auto-insert-metadata][Auto Insert Metadata]]
-  - [[#auto-insert][Auto Insert]]
-  - [[#get-title-function][Get Title Function]]
 - [[#display-inline-images][Display Inline Images]]
 - [[#indent-mode][Indent Mode]]
 - [[#fix-wired-indent][Fix Wired Indent]]
 - [[#src-block][Src Block]]
 - [[#toc][Toc]]
 - [[#hide-elements][Hide Elements]]
-- [[#show-hidden-element][Show Hidden Element]]
+- [[#show-hidden-element-in-insert-mode][Show Hidden Element in Insert Mode]]
 - [[#babel][Babel]]
   - [[#dont-comfirm-when-evaluate][Dont comfirm when evaluate]]
 - [[#insert-links-with-title][Insert Links with Title]]
@@ -31,25 +28,32 @@
 * Keybind
 #+begin_src emacs-lisp
 (evil-define-key '(normal visual) org-mode-map
-  (kbd "<leader>om") 'org-header-skeleton  ;; insert metadata
   (kbd "<leader>oi") 'org-toggle-inline-images
   )
 
-(evil-define-key nil 'global
+(evil-define-key 'normal org-mode-map
+  (kbd "M-o") 'my-org-meta-new-line
+  )
+
+(evil-define-key nil org-mode-map
   ;; (kbd "C-c l")      'org-store-link
   (kbd "C-c k")      'my-paste-url
-  (kbd "C-c a")      'org-agenda
-  (kbd "C-c c")      'org-capture
   (kbd "C-c s")      'org-edit-src-code
   )
+
+(evil-define-key nil 'global
+  (kbd "C-c a")      'org-agenda
+  (kbd "C-c c")      'org-capture
+  )
 #+end_src
-** Custom function
+
+** My function
 #+begin_src emacs-lisp
-(defun my-paste-url ()
-  "Paste url with title."
+(defun my-org-meta-new-line()
+  "Insert heading or item."
   (interactive)
-  (evil-set-register ?\" (evil-get-register ?*))
-  (org-cliplink))
+  (evil-append-line 1)
+  (org-meta-return))
 #+end_src
 
 * Org Roam
@@ -146,34 +150,6 @@
         ))
 #+end_src
 
-* Auto Insert Metadata
-** Auto Insert
-#+begin_src emacs-lisp
-;; (auto-insert-mode t)
-;;
-;; (setq user-full-name "uima")
-;; (add-to-list 'auto-insert-alist
-;;              '(("\\.\\org\\'" . "Auto insert metadata for org.")
-;;                "" "#+TITLE: " (get-title-by-file-name) "\n"
-;;                "#+AUTHOR: " user-full-name "\n"
-;;                "#+DATE: " (format-time-string "%Y-%m-%d") "\n")
-;;              )
-#+end_src
-
-** Get Title Function
-#+begin_src emacs-lisp
-(defun get-file-name-without-extension ()
-  (file-name-sans-extension
-   (file-name-nondirectory
-    (buffer-file-name
-     (window-buffer
-      (minibuffer-selected-window))))))
-(defun get-title-by-file-name ()
-  (s-titleize
-   (subst-char-in-string
-    ?- (string-to-char " ") (get-file-name-without-extension))))
-#+end_src
-
 * Display Inline Images
 #+begin_src emacs-lisp
 (setq org-startup-with-inline-images t)
@@ -186,8 +162,7 @@
 
 * Fix Wired Indent
 #+begin_src emacs-lisp
-(electric-indent-mode -1)
-(setq org-src-preserve-indentation t)  ;; do not put two spaces on the left
+(setq org-src-preserve-indentation t)  ;; not place two spaces at the left of src block
 #+end_src
 
 * Src Block
@@ -205,7 +180,7 @@
 (setq org-hide-emphasis-markers t)
 #+end_src
 
-* Show Hidden Element
+* Show Hidden Element in Insert Mode
 #+begin_src emacs-lisp
 (use-package org-appear
   :init
@@ -244,6 +219,12 @@
 * Insert Links with Title
 #+begin_src emacs-lisp
 (use-package org-cliplink)
+
+(defun my-paste-url ()
+  "Paste url with title."
+  (interactive)
+  (evil-set-register ?\" (evil-get-register ?*))
+  (org-cliplink))
 #+end_src
 
 * TODO Export
