@@ -4,7 +4,8 @@
 
 * TOC                                                                   :TOC:
 - [[#keybind][Keybind]]
-  - [[#my-function][My function]]
+  - [[#paste-image][Paste image]]
+  - [[#meta-new-line][Meta new line]]
 - [[#org-roam][Org Roam]]
   - [[#roam-ui][Roam UI]]
 - [[#agenda][Agenda]]
@@ -14,7 +15,7 @@
 - [[#display-inline-images][Display Inline Images]]
 - [[#indent-mode][Indent Mode]]
 - [[#fix-wired-indent][Fix Wired Indent]]
-- [[#src-block][Src Block]]
+- [[#edit-src-block][Edit Src Block]]
 - [[#toc][Toc]]
 - [[#hide-elements][Hide Elements]]
 - [[#show-hidden-element-in-insert-mode][Show Hidden Element in Insert Mode]]
@@ -32,12 +33,12 @@
   )
 
 (evil-define-key 'normal org-mode-map
-  (kbd "M-o") 'my-org-meta-new-line
+  (kbd "M-o") 'my/org-meta-new-line
   )
 
 (evil-define-key nil org-mode-map
   ;; (kbd "C-c l")      'org-store-link
-  (kbd "C-c k")      'my-paste-url
+  (kbd "C-c k")      'my/paste-url
   (kbd "C-c s")      'org-edit-src-code
   )
 
@@ -47,9 +48,10 @@
   )
 #+end_src
 
-** My function
+** TODO Paste image
+** Meta new line
 #+begin_src emacs-lisp
-(defun my-org-meta-new-line()
+(defun my/org-meta-new-line()
   "Insert heading or item."
   (interactive)
   (evil-append-line 1)
@@ -84,9 +86,11 @@
 
 ** Roam UI
 #+begin_src emacs-lisp
+;; Dependence
 (use-package websocket)
 (use-package simple-httpd)
 (use-package f)
+
 (use-package org-roam-ui)
 #+end_src
 
@@ -161,18 +165,20 @@
 #+end_src
 
 * Fix Wired Indent
+Not place two spaces at the left of src block.
 #+begin_src emacs-lisp
-(setq org-src-preserve-indentation t)  ;; not place two spaces at the left of src block
+(setq org-src-preserve-indentation t)
 #+end_src
 
-* Src Block
+* Edit Src Block
 #+begin_src emacs-lisp
 (setq org-src-window-setup 'current-window)
 #+end_src
 
 * Toc
 #+begin_src emacs-lisp
-(use-package toc-org :hook (org-mode . toc-org-mode))
+(use-package toc-org
+  :hook (org-mode . toc-org-mode))
 #+end_src
 
 * Hide Elements
@@ -220,8 +226,8 @@
 #+begin_src emacs-lisp
 (use-package org-cliplink)
 
-(defun my-paste-url ()
-  "Paste url with title."
+(defun my/paste-url ()
+  "Paste url with title with evil mode and select-enable-clipboard off."
   (interactive)
   (evil-set-register ?\" (evil-get-register ?*))
   (org-cliplink))

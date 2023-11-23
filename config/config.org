@@ -5,11 +5,12 @@
 * TOC                                                                   :TOC:
 - [[#package-manager][Package Manager]]
 - [[#evil-mode][Evil Mode]]
-  - [[#dont-use-clipboard-as-default-register][Don't use clipboard as default Register]]
-  - [[#evil-collection][Evil Collection]]
+  - [[#undo-tree][Undo Tree]]
   - [[#evil-snipe][Evil Snipe]]
   - [[#evil-surround][Evil Surround]]
 - [[#vertico][Vertico]]
+  - [[#consult][Consult]]
+  - [[#embark][Embark]]
   - [[#marginalia][Marginalia]]
   - [[#savehist][Savehist]]
   - [[#hotfuzz][Hotfuzz]]
@@ -58,24 +59,21 @@
 #+begin_src emacs-lisp
 (use-package evil
   :init
-  (setq evil-want-keybinding nil)
-  (setq evil-vsplit-window-right t)
-  (setq evil-split-window-below t)
+  (setq evil-want-keybinding nil
+        evil-vsplit-window-right t
+        evil-split-window-below t)
+  ;; dont use clipboard as register
+  (setq select-enable-clipboard nil)
   :config
-  (evil-mode 1))
+  (evil-set-undo-system 'undo-tree)
+  (evil-mode))
 #+end_src
 
-** Don't use clipboard as default Register
+** Undo Tree
 #+begin_src emacs-lisp
-(setq select-enable-clipboard nil)
-#+end_src
-
-** Evil Collection
-#+begin_src emacs-lisp
-;; (use-package evil-collection
-;;   :after evil
-;;   :config
-;;   (evil-collection-init))
+(use-package undo-tree
+  :config
+  (undo-tree-mode))
 #+end_src
 
 ** Evil Snipe
@@ -83,10 +81,11 @@
 #+begin_src emacs-lisp
 (use-package evil-snipe
   :after evil
+  :init
+  (setq evil-snipe-scope 'visible)
   :config
-  (evil-snipe-mode 1)
-  (evil-snipe-override-mode 1)
-  (setq evil-snipe-scope 'visible))
+  (evil-snipe-mode)
+  (evil-snipe-override-mode))
 #+end_src
 
 ** Evil Surround
@@ -94,7 +93,7 @@
 (use-package evil-surround
   :after evil
   :config
-  (global-evil-surround-mode 1))
+  (global-evil-surround-mode))
 #+end_src
 
 * Vertico
@@ -105,8 +104,36 @@ The completion mechanism
   (setq read-file-name-completion-ignore-case t
         read-buffer-completion-ignore-case t
         completion-ignore-case t)
+  ;; (setq vertico-multiform-categories
+  ;;       '((consult-grep reverse)
+  ;;         (t reverse)))
   :config
-  (vertico-mode 1))
+  (vertico-mode)
+  (vertico-reverse-mode))
+#+end_src
+
+** Consult
+#+begin_src emacs-lisp
+(use-package consult
+  :bind
+  (("C-x C-b" . consult-buffer)
+   ("C-c r" . consult-grep))
+  )
+#+end_src
+
+** Embark
+Minibuffer actions
+#+begin_src emacs-lisp
+(use-package embark
+  :bind
+  (("C-." . embark-act)         ;; pick some comfortable binding
+   ("C-;" . embark-dwim)        ;; good alternative: M-.
+   ("C-h B" . embark-bindings)) ;; alternative for `describe-bindings'
+  )
+
+(use-package embark-consult
+  :hook
+  (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
 
 ** Marginalia
@@ -115,7 +142,7 @@ Marginalia in the minibuffer
 (use-package marginalia
   :after vertico
   :config
-  (marginalia-mode 1))
+  (marginalia-mode))
 #+end_src
 
 ** Savehist
@@ -124,7 +151,7 @@ History plug for Vertico
 (use-package savehist
   :after vertico
   :config
-  (savehist-mode 1))
+  (savehist-mode))
 #+end_src
 
 ** Hotfuzz
@@ -148,14 +175,11 @@ Fuzzy search
 ** Normal
 #+begin_src emacs-lisp
 (evil-define-key nil 'global
-  (kbd "C-x C-b") 'switch-to-buffer  ;; no more releasing finger
-  ;; (kbd "C-x C-b") 'scratch-buffer
   (kbd "<escape>") 'keyboard-escape-quit  ;; esc to quit prompts
   (kbd "<next>") 'evil-scroll-down  ;; scorll half page down
   (kbd "<prior>") 'evil-scroll-up)  ;; scorll half page up
 
 (evil-define-key 'normal 'global
-  (kbd "C-p") 'project-switch-project  ;; switch project
   (kbd ";") 'project-find-file  ;; find file
   (kbd "<backspace>") 'evil-buffer  ;; alternate file
   (kbd "gc") 'comment-line  ;; comment out the line
@@ -181,30 +205,30 @@ Fuzzy search
 (evil-define-key 'normal 'global (kbd "Y") "y$")
 
 (evil-define-key nil 'global
-  (kbd "<XF86Copy>") 'my-clip-y
-  (kbd "<XF86Paste>") 'my-clip-p
-  (kbd "<XF86Cut>") 'my-clip-d)
+  (kbd "<XF86Copy>") 'my/clip-y
+  (kbd "<XF86Paste>") 'my/clip-p
+  (kbd "<XF86Cut>") 'my/clip-d)
 
 (evil-define-key '(normal visual) 'global
-  (kbd "<leader>y") 'my-clip-y
+  (kbd "<leader>y") 'my/clip-y
   (kbd "<leader>Y") "\"+y$"
-  (kbd "<leader>p") 'my-clip-p
+  (kbd "<leader>p") 'my/clip-p
   (kbd "<leader>P") "\"+P"
-  (kbd "<leader>d") 'my-clip-d
+  (kbd "<leader>d") 'my/clip-d
   (kbd "<leader>D") "\"+D")
 #+end_src
 
 *** Clipboard yank / paste / cut function
 #+begin_src emacs-lisp
-(defun my-clip-y ()
+(defun my/clip-y ()
   (interactive)
   (evil-use-register ?+)
   (call-interactively 'evil-yank))
-(defun my-clip-p ()
+(defun my/clip-p ()
   (interactive)
   (evil-use-register ?+)
   (call-interactively 'evil-paste-after))
-(defun my-clip-d ()
+(defun my/clip-d ()
   (interactive)
   (evil-use-register ?+)
   (call-interactively 'evil-delete))
@@ -230,14 +254,14 @@ Fuzzy search
 (evil-define-key 'normal 'global
   (kbd "<leader>bi") 'ibuffer
   (kbd "<leader>bk") 'kill-this-buffer
-  (kbd "<leader>bK") 'kill-other-buffers
+  (kbd "<leader>bK") 'my/kill-other-buffers
   (kbd "<leader>br") 'revert-buffer
   )
 #+end_src
 
 *** Function of Kill other buffers
 #+begin_src emacs-lisp
-(defun kill-other-buffers ()
+(defun my/kill-other-buffers ()
   "Kill all other buffers."
   (interactive)
   (mapc 'kill-buffer (cdr (buffer-list (current-buffer)))))
@@ -248,13 +272,13 @@ Fuzzy search
 (evil-define-key '(normal visual) 'global
   (kbd "<leader>tn") 'display-line-numbers-mode
   (kbd "<leader>tw") 'visual-line-mode  ;; warp line
-  (kbd "<leader>tt") 'toggle-transparency
+  (kbd "<leader>tt") 'my/toggle-transparency
   )
 #+end_src
 
 *** Toggle Transparency
 #+begin_src emacs-lisp
-(defun toggle-transparency ()
+(defun my/toggle-transparency ()
   "Toggle transparency."
   (interactive)
   (pcase (frame-parameter nil 'alpha-background)
@@ -302,7 +326,7 @@ Fuzzy search
 #+begin_src emacs-lisp
 (use-package doom-modeline
   :config
-  (doom-modeline-mode 1))
+  (doom-modeline-mode))
 #+end_src
 
 * UI
@@ -315,12 +339,12 @@ Fuzzy search
 
 ** Disable Blink Cursor
 #+begin_src emacs-lisp
-(blink-cursor-mode 0)
+(blink-cursor-mode nil)
 #+end_src
 
 ** Line Warp
 #+begin_src emacs-lisp
-(global-visual-line-mode 1)
+(global-visual-line-mode)
 #+end_src
 
 ** Show Trailing Space
@@ -356,7 +380,7 @@ Fuzzy search
   (require 'sublimity-attractive)
   ;; Keep content on center
   (setq sublimity-attractive-centering-width 90)
-  (sublimity-mode 1))
+  (sublimity-mode))
 #+end_src
 
 ** Show parens
