@@ -28,24 +28,22 @@
 
 * Keybind
 #+begin_src emacs-lisp
-(evil-define-key '(normal visual) org-mode-map
-  (kbd "<leader>oi") 'org-toggle-inline-images
-  )
-
 (evil-define-key 'normal org-mode-map
-  (kbd "M-o") 'my/org-meta-new-line
-  )
+  (kbd "M-o") 'my/org-meta-new-line)
 
-(evil-define-key nil org-mode-map
-  ;; (kbd "C-c l")      'org-store-link
-  (kbd "C-c k")      'my/paste-url
-  (kbd "C-c s")      'org-edit-src-code
-  )
+(general-define-key
+ :prefix "C-c"
+ "a" 'org-agenda
+ "c" 'org-capture
+ )
 
-(evil-define-key nil 'global
-  (kbd "C-c a")      'org-agenda
-  (kbd "C-c c")      'org-capture
-  )
+(general-define-key
+ :keymaps 'org-mode-map
+ :prefix "C-c"
+ "l" 'org-store-link
+ "k" 'my/paste-url
+ "s" 'org-edit-src-code
+ )
 #+end_src
 
 ** TODO Paste image

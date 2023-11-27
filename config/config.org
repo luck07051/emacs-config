@@ -2,22 +2,24 @@
 #+AUTHOR: uima
 #+DESCRIPTION: The emacs config file
 
-* TOC                                                                   :TOC:
+* TOC :TOC:
 - [[#package-manager][Package Manager]]
 - [[#evil-mode][Evil Mode]]
+  - [[#clipboard-yank--paste--cut-function][Clipboard yank / paste / cut function]]
   - [[#undo-tree][Undo Tree]]
   - [[#evil-snipe][Evil Snipe]]
   - [[#evil-surround][Evil Surround]]
+- [[#general][General]]
 - [[#vertico][Vertico]]
   - [[#consult][Consult]]
   - [[#embark][Embark]]
   - [[#marginalia][Marginalia]]
   - [[#savehist][Savehist]]
   - [[#hotfuzz][Hotfuzz]]
+- [[#avy][Avy]]
 - [[#keybinding][Keybinding]]
   - [[#define-leader-key][Define Leader key]]
   - [[#normal][Normal]]
-  - [[#copy-paste][Copy Paste]]
   - [[#file][File]]
   - [[#buffer][Buffer]]
   - [[#toggle-ui][Toggle UI]]
@@ -64,16 +66,59 @@
         evil-split-window-below t)
   ;; dont use clipboard as register
   (setq select-enable-clipboard nil)
+
   :config
   (evil-set-undo-system 'undo-tree)
-  (evil-mode))
+  (evil-mode)
+
+  (evil-set-leader nil (kbd "SPC"))  ;; set leader key
+  (evil-set-leader nil (kbd ",") 1)  ;; set local leader
+
+  (evil-define-key 'insert 'global
+    (kbd "C-g") 'evil-normal-state)
+
+  (evil-define-key 'normal 'global
+    (kbd "Y") "y$"
+    (kbd ";") 'project-find-file
+    (kbd "<backspace>") 'evil-buffer  ;; alternate file
+    (kbd "gc") 'comment-line)
+
+  (evil-define-key 'visual 'global
+    (kbd "gc") 'comment-region)
+
+  (evil-define-key '(normal visual) 'global
+    (kbd "<leader>y") 'my/clip-y
+    (kbd "<leader>Y") "\"+y$"
+    (kbd "<leader>p") 'my/clip-p
+    (kbd "<leader>P") "\"+P"
+    (kbd "<leader>d") 'my/clip-d
+    (kbd "<leader>D") "\"+D")
+  )
+#+end_src
+
+** Clipboard yank / paste / cut function
+#+begin_src emacs-lisp
+(defun my/clip-y ()
+  (interactive)
+  (evil-use-register ?+)
+  (call-interactively 'evil-yank))
+
+(defun my/clip-p ()
+  (interactive)
+  (evil-use-register ?+)
+  (call-interactively 'evil-paste-after))
+
+(defun my/clip-d ()
+  (interactive)
+  (evil-use-register ?+)
+  (call-interactively 'evil-delete))
 #+end_src
 
 ** Undo Tree
 #+begin_src emacs-lisp
 (use-package undo-tree
   :config
-  (undo-tree-mode))
+  (global-undo-tree-mode))
 #+end_src
 
 ** Evil Snipe
@@ -94,6 +139,16 @@
   :after evil
   :config
   (global-evil-surround-mode))
+#+end_src
+
+* General
+#+begin_src emacs-lisp
+(use-package general
+  :config
+  (general-create-definer my/leader-keys
+    :keymaps '(normal insert visual emacs)
+    :prefix "SPC"
+    :global-prefix "M-SPC"))
 #+end_src
 
 * Vertico
@@ -165,97 +220,85 @@ Fuzzy search
   (require 'hotfuzz))
 #+end_src
 
+* Avy
+Char-based jump
+#+begin_src emacs-lisp
+(use-package avy
+  :bind
+  (("C-:" . avy-goto-char-timer))
+  )
+#+end_src
+
 * Keybinding
 ** Define Leader key
 #+begin_src emacs-lisp
-(evil-set-leader nil (kbd "SPC"))  ;; set leader key
-(evil-set-leader nil (kbd ",") 1)  ;; set local leader
+;; (kbd "<leader>rg") 'rgrep  ;; searching context
+;; ;;(kbd "") 'next-error
+;; ;;(kbd "") 'previous-error
+
+;; (kbd "<leader>ec")
+;; '(lambda () (interactive)
+;;    (load-file "~/.config/emacs/init.el"))  ;; eval the config file
 #+end_src
 
 ** Normal
 #+begin_src emacs-lisp
-(evil-define-key nil 'global
-  (kbd "<escape>") 'keyboard-escape-quit  ;; esc to quit prompts
-  (kbd "<next>") 'evil-scroll-down  ;; scorll half page down
-  (kbd "<prior>") 'evil-scroll-up)  ;; scorll half page up
-
-(evil-define-key 'normal 'global
-  (kbd ";") 'project-find-file  ;; find file
-  (kbd "<backspace>") 'evil-buffer  ;; alternate file
-  (kbd "gc") 'comment-line  ;; comment out the line
-
-  (kbd "<leader>rg") 'rgrep  ;; searching context
-  ;;(kbd "") 'next-error
-  ;;(kbd "") 'previous-error
-
-  (kbd "<leader>ec")
-  '(lambda () (interactive)
-     (load-file "~/.config/emacs/init.el"))  ;; eval the config file
-  )
-
-(evil-define-key 'visual 'global
-  (kbd "gc") 'comment-region  ;; comment out the region
-  (kbd "<leader>sh") 'shell-command-on-region  ;; execute a cmd on selection
-  (kbd "<leader>er") 'eval-region  ;; eval the selection
-  )
+(global-set-key (kbd "<escape>")    'keyboard-escape-quit)  ;; esc to quit prompts
+(global-set-key (kbd "<next>")      'my/scroll-half-page-down)
+(global-set-key (kbd "<prior>")     'my/scroll-half-page-up)
+(global-set-key (kbd "<XF86Copy>")  'clipboard-kill-ring-save)
+(global-set-key (kbd "<XF86Paste>") 'clipboard-yank)
+(global-set-key (kbd "<XF86Cut>")   'clipboard-kill-region)
 #+end_src
 
-** Copy Paste
+*** Scroll half page
 #+begin_src emacs-lisp
-(evil-define-key 'normal 'global (kbd "Y") "y$")
-
-(evil-define-key nil 'global
-  (kbd "<XF86Copy>") 'my/clip-y
-  (kbd "<XF86Paste>") 'my/clip-p
-  (kbd "<XF86Cut>") 'my/clip-d)
-
-(evil-define-key '(normal visual) 'global
-  (kbd "<leader>y") 'my/clip-y
-  (kbd "<leader>Y") "\"+y$"
-  (kbd "<leader>p") 'my/clip-p
-  (kbd "<leader>P") "\"+P"
-  (kbd "<leader>d") 'my/clip-d
-  (kbd "<leader>D") "\"+D")
-#+end_src
-
-*** Clipboard yank / paste / cut function
-#+begin_src emacs-lisp
-(defun my/clip-y ()
+(defun my/scroll-half-page-down ()
+  "scroll down half a page while keeping the cursor centered"
   (interactive)
-  (evil-use-register ?+)
-  (call-interactively 'evil-yank))
-(defun my/clip-p ()
+  (let ((ln (line-number-at-pos (point)))
+    (lmax (line-number-at-pos (point-max))))
+    (cond ((= ln 1) (move-to-window-line nil))
+      ((= ln lmax) (recenter (window-end)))
+      (t (progn
+           (move-to-window-line -1)
+           (recenter))))))
+
+(defun my/scroll-half-page-up ()
+  "scroll up half a page while keeping the cursor centered"
   (interactive)
-  (evil-use-register ?+)
-  (call-interactively 'evil-paste-after))
-(defun my/clip-d ()
-  (interactive)
-  (evil-use-register ?+)
-  (call-interactively 'evil-delete))
+  (let ((ln (line-number-at-pos (point)))
+    (lmax (line-number-at-pos (point-max))))
+    (cond ((= ln 1) nil)
+      ((= ln lmax) (move-to-window-line nil))
+      (t (progn
+           (move-to-window-line 0)
+           (recenter))))))
 #+end_src
 
 ** File
 #+begin_src emacs-lisp
-(evil-define-key 'normal 'global
-  (kbd "<leader>ff") 'find-file
-  (kbd "<leader>fe") 'project-find-file
-  (kbd "<leader>fp") 'project-switch-project
-  (kbd "<leader>fr") 'recentf
-  (kbd "<leader>fc") '(lambda () (interactive) (find-file "~/.config/emacs/config/config.org"))
-  (kbd "<leader>fo") '(lambda () (interactive) (find-file "~/org/inbox.org"))
-
-  (kbd "<leader>fm") 'make-directory
-  (kbd "<leader>fd") 'delete-file
-  )
+(my/leader-keys
+ "f"  '(:ignore t :which-key "files")
+ "ff" 'find-file
+ "fe" 'project-find-file
+ "fp" 'project-switch-project
+ "fr" 'recentf
+ "fc" '(lambda () (interactive) (find-file "~/.config/emacs/config/config.org"))
+ "fo" '(lambda () (interactive) (find-file "~/org/inbox.org"))
+ "fm" 'make-directory
+ "fd" 'delete-file
+ )
 #+end_src
 
 ** Buffer
 #+begin_src emacs-lisp
-(evil-define-key 'normal 'global
-  (kbd "<leader>bi") 'ibuffer
-  (kbd "<leader>bk") 'kill-this-buffer
-  (kbd "<leader>bK") 'my/kill-other-buffers
-  (kbd "<leader>br") 'revert-buffer
+(my/leader-keys
+  "b"  '(:ignore t :which-key "buffers")
+  "bi" 'ibuffer
+  "bk" 'kill-this-buffer
+  "bK" 'my/kill-other-buffers
+  "br" 'revert-buffer
   )
 #+end_src
 
@@ -269,16 +312,17 @@ Fuzzy search
 
 ** Toggle UI
 #+begin_src emacs-lisp
-(evil-define-key '(normal visual) 'global
-  (kbd "<leader>tn") 'display-line-numbers-mode
-  (kbd "<leader>tw") 'visual-line-mode  ;; warp line
-  (kbd "<leader>tt") 'my/toggle-transparency
+(my/leader-keys
+  "t"  '(:ignore t :which-key "toggles")
+  "tn" 'display-line-numbers-mode
+  "tw" 'visual-line-mode  ;; warp line
+  "to" 'my/toggle-opacity
   )
 #+end_src
 
 *** Toggle Transparency
 #+begin_src emacs-lisp
-(defun my/toggle-transparency ()
+(defun my/toggle-opacity ()
   "Toggle transparency."
   (interactive)
   (pcase (frame-parameter nil 'alpha-background)
@@ -339,7 +383,7 @@ Fuzzy search
 
 ** Disable Blink Cursor
 #+begin_src emacs-lisp
-(blink-cursor-mode nil)
+(blink-cursor-mode 0)
 #+end_src
 
 ** Line Warp
