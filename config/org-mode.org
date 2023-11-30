@@ -3,57 +3,60 @@
 #+DESCRIPTION: Config for Org Mode
 
 * TOC                                                                   :TOC:
-- [[#keybind][Keybind]]
-  - [[#paste-image][Paste image]]
-  - [[#meta-new-line][Meta new line]]
+- [[#org][Org]]
 - [[#org-roam][Org Roam]]
   - [[#roam-ui][Roam UI]]
-- [[#agenda][Agenda]]
-- [[#tags][Tags]]
-- [[#keyword][Keyword]]
 - [[#capture-templete][Capture Templete]]
-- [[#display-inline-images][Display Inline Images]]
-- [[#indent-mode][Indent Mode]]
-- [[#fix-wired-indent][Fix Wired Indent]]
-- [[#edit-src-block][Edit Src Block]]
-- [[#toc][Toc]]
-- [[#hide-elements][Hide Elements]]
-- [[#show-hidden-element-in-insert-mode][Show Hidden Element in Insert Mode]]
 - [[#babel][Babel]]
-  - [[#dont-comfirm-when-evaluate][Dont comfirm when evaluate]]
+- [[#bullets][Bullets]]
+- [[#toc][Toc]]
+- [[#show-hidden-element][Show Hidden Element]]
 - [[#insert-links-with-title][Insert Links with Title]]
 - [[#export][Export]]
 - [[#archive-doned-to-do-list][Archive Doned To-do list]]
 - [[#automatically-done-when-all-children-are-done][Automatically DONE When All Children Are Done]]
 
-* Keybind
+* Org
 #+begin_src emacs-lisp
-(evil-define-key 'normal org-mode-map
-  (kbd "M-o") 'my/org-meta-new-line)
+(use-package org
+  :bind
+  (("C-c a" . org-agenda)
+   ("C-c c" . org-capture)
+   :map org-mode-map
+   ("C-c l" . org-store-link)
+   ("C-c k" . org-cliplink)
+   ("C-c s" . org-edit-src-code)
+   )
+  :hook
+  (org-mode . org-indent-mode)
+  :custom
+  (org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
 
-(general-define-key
- :prefix "C-c"
- "a" 'org-agenda
- "c" 'org-capture
- )
+  (org-ellipsis " ▾")                    ;; the character for folding indicator
+  (org-hide-emphasis-markers t)          ;; hide emphasis markers
+  (org-startup-with-inline-images t)     ;; show inline images
+  (org-src-preserve-indentation t)       ;; no leading indent in src block
+  (org-src-window-setup 'current-window) ;; edit src block in current window
+  (org-confirm-babel-evaluate nil)       ;; no confirm when evaluate
 
-(general-define-key
- :keymaps 'org-mode-map
- :prefix "C-c"
- "l" 'org-store-link
- "k" 'my/paste-url
- "s" 'org-edit-src-code
- )
-#+end_src
+  ;; TODO
+  (org-todo-keywords
+   '((sequence "TODO(t)" "IN-PROGRESS(i!)" "WAITING(w@)" "|" "DONE(d)")))
+  (org-log-done 'time)  ;; log time when done
+  (org-todo-keyword-faces
+   '(("TODO"        . (:foreground "GoldenRod"  :weight bold))
+     ("IN-PROGRESS" . (:foreground "Cyan"       :weight bold))
+     ("WAITING"     . (:foreground "DarkOrange" :weight bold))
+     ("DONE"        . (:foreground "LimeGreen"  :weight bold))
+     ))
 
-** TODO Paste image
-** Meta new line
-#+begin_src emacs-lisp
-(defun my/org-meta-new-line()
-  "Insert heading or item."
-  (interactive)
-  (evil-append-line 1)
-  (org-meta-return))
+  ;; TAG
+  (org-tag-alist '((:startgroup . nil)
+                   (:endgroup . nil)))
+  (org-tag-faces
+   '(;;("meeting"   . (:foreground "yellow1"       :weight bold))
+     ))
+  )
 #+end_src
 
 * Org Roam
@@ -74,7 +77,6 @@
   :bind (("C-c l" . org-roam-buffer-toggle)
          ("C-c f" . org-roam-node-find)
          ("C-c i" . org-roam-node-insert)
-         ("C-c n g" . org-roam-graph)
          ("C-c n c" . org-roam-capture)
          :map org-mode-map
          ("C-M-i"   . completion-at-point))
@@ -89,50 +91,15 @@
 (use-package simple-httpd)
 (use-package f)
 
-(use-package org-roam-ui)
-#+end_src
-
-* Agenda
-#+begin_src emacs-lisp
-;;(setq org-agenda-files '("~/org"))
-(setq org-agenda-files (directory-files-recursively "~/org/" "\\.org$"))
-#+end_src
-
-* Tags
-#+begin_src emacs-lisp
-(setq org-tag-alist '(
-                      (:startgroup . nil)
-                      (:endgroup . nil)
-                      ))
-
-(setq org-tag-faces
-      '(
-        ;;("meeting"   . (:foreground "yellow1"       :weight bold))
-        ))
-#+end_src
-
-* Todo Keyword
-#+begin_src emacs-lisp
-(setq org-todo-keywords
-      ;;'((sequence "TODO" "WAITING" "|" "DONE")))
-      '((sequence "TODO(t)" "IN-PROGRESS(i!)" "WAITING(w@)" "|" "DONE(d)")))
-
-(setq org-log-done 'time)
-
-(setq org-todo-keyword-faces
-      '(
-        ("TODO"        . (:foreground "GoldenRod"  :weight bold))
-        ("IN-PROGRESS" . (:foreground "Cyan"       :weight bold))
-        ("WAITING"     . (:foreground "DarkOrange" :weight bold))
-        ("DONE"        . (:foreground "LimeGreen"  :weight bold))
-        ))
+(use-package org-roam-ui
+  :bind (("C-c n g" . org-roam-ui-open))
+  )
 #+end_src
 
 * Capture Templete
 #+begin_src emacs-lisp
 (setq org-capture-templates
-      '(
-        ("n" "Add Note to Inbox"
+      '(("n" "Add Note to Inbox"
          entry (file "~/org/inbox.org")
          "* %?"
          :empty-lines-before 1)
@@ -152,25 +119,24 @@
         ))
 #+end_src
 
-* Display Inline Images
+* Babel
 #+begin_src emacs-lisp
-(setq org-startup-with-inline-images t)
+(org-babel-do-load-languages
+ 'org-babel-load-languages
+ '((emacs-lisp . t)
+   (shell . t)
+   (python . t)
+   (awk . t)
+   (C . t)
+   ))
 #+end_src
 
-* Indent Mode
+* Bullets
 #+begin_src emacs-lisp
-(add-hook 'org-mode-hook 'org-indent-mode)
-#+end_src
-
-* Fix Wired Indent
-Not place two spaces at the left of src block.
-#+begin_src emacs-lisp
-(setq org-src-preserve-indentation t)
-#+end_src
-
-* Edit Src Block
-#+begin_src emacs-lisp
-(setq org-src-window-setup 'current-window)
+(use-package org-bullets
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("●" "○")))
 #+end_src
 
 * Toc
@@ -179,56 +145,25 @@ Not place two spaces at the left of src block.
   :hook (org-mode . toc-org-mode))
 #+end_src
 
-* Hide Elements
-#+begin_src emacs-lisp
-(setq org-hide-emphasis-markers t)
-#+end_src
-
-* Show Hidden Element in Insert Mode
+* Show Hidden Element
 #+begin_src emacs-lisp
 (use-package org-appear
-  :init
-  (setq org-appear-autolinks 1)
-  (setq org-appear-trigger 'manual)
-  (add-hook 'org-mode-hook 'org-appear-mode)
-  (add-hook 'org-mode-hook (lambda ()
-			     (add-hook 'evil-insert-state-entry-hook
-				       #'org-appear-manual-start
-				       nil
-				       t)
-			     (add-hook 'evil-insert-state-exit-hook
-				       #'org-appear-manual-stop
-				       nil
-				       t))))
-#+end_src
-
-* Babel
-#+begin_src emacs-lisp
-(org-babel-do-load-languages
- 'org-babel-load-languages
- '(
-   (emacs-lisp . t)
-   (shell . t)
-   (python . t)
-   (awk . t)
-   (C . t)
-   ))
-#+end_src
-
-** Dont comfirm when evaluate
-#+begin_src emacs-lisp
-(setq org-confirm-babel-evaluate nil)
+  :hook (org-mode . org-appear-mode)
+  :custom
+  (org-appear-autolinks 1))
+;; (setq org-appear-trigger 'manual)
+;; (add-hook 'org-mode-hook
+;; 	  (lambda ()
+;; 	    (add-hook 'evil-insert-state-entry-hook
+;; 		      #'org-appear-manual-start nil t)
+;; 	    (add-hook 'evil-insert-state-exit-hook
+;; 		      #'org-appear-manual-stop nil t))))
 #+end_src
 
 * Insert Links with Title
 #+begin_src emacs-lisp
-(use-package org-cliplink)
-
-(defun my/paste-url ()
-  "Paste url with title with evil mode and select-enable-clipboard off."
-  (interactive)
-  (evil-set-register ?\" (evil-get-register ?*))
-  (org-cliplink))
+(use-package org-cliplink
+  :after org)
 #+end_src
 
 * TODO Export

@@ -4,11 +4,6 @@
 
 * TOC :TOC:
 - [[#package-manager][Package Manager]]
-- [[#evil-mode][Evil Mode]]
-  - [[#clipboard-yank--paste--cut-function][Clipboard yank / paste / cut function]]
-  - [[#undo-tree][Undo Tree]]
-  - [[#evil-snipe][Evil Snipe]]
-  - [[#evil-surround][Evil Surround]]
 - [[#general][General]]
 - [[#vertico][Vertico]]
   - [[#consult][Consult]]
@@ -27,7 +22,7 @@
 - [[#mode-line][Mode Line]]
 - [[#ui][UI]]
   - [[#disable-gui-bars][Disable GUI Bars]]
-  - [[#disable-blink-cursor][Disable Blink Cursor]]
+  - [[#no-blink-cursor][No Blink Cursor]]
   - [[#line-warp][Line Warp]]
   - [[#show-trailing-space][Show Trailing Space]]
   - [[#default-window-size][Default Window Size]]
@@ -47,8 +42,9 @@
 #+begin_src emacs-lisp
 ;; Set up package.el to work with MELPA
 (require 'package)
-(add-to-list 'package-archives
-	     '("melpa" . "https://melpa.org/packages/"))
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
 (package-initialize)
 (unless package-archive-contents
   (packae-refresh-contents))
@@ -57,111 +53,24 @@
 (setq use-package-always-ensure t)
 #+end_src
 
-* Evil Mode
-#+begin_src emacs-lisp
-(use-package evil
-  :init
-  (setq evil-want-keybinding nil
-        evil-vsplit-window-right t
-        evil-split-window-below t)
-  ;; dont use clipboard as register
-  (setq select-enable-clipboard nil)
-
-  :config
-  (evil-set-undo-system 'undo-tree)
-  (evil-mode)
-
-  (evil-set-leader nil (kbd "SPC"))  ;; set leader key
-  (evil-set-leader nil (kbd ",") 1)  ;; set local leader
-
-  (evil-define-key 'insert 'global
-    (kbd "C-g") 'evil-normal-state)
-
-  (evil-define-key 'normal 'global
-    (kbd "Y") "y$"
-    (kbd ";") 'project-find-file
-    (kbd "<backspace>") 'evil-buffer  ;; alternate file
-    (kbd "gc") 'comment-line)
-
-  (evil-define-key 'visual 'global
-    (kbd "gc") 'comment-region)
-
-  (evil-define-key '(normal visual) 'global
-    (kbd "<leader>y") 'my/clip-y
-    (kbd "<leader>Y") "\"+y$"
-    (kbd "<leader>p") 'my/clip-p
-    (kbd "<leader>P") "\"+P"
-    (kbd "<leader>d") 'my/clip-d
-    (kbd "<leader>D") "\"+D")
-  )
-#+end_src
-
-** Clipboard yank / paste / cut function
-#+begin_src emacs-lisp
-(defun my/clip-y ()
-  (interactive)
-  (evil-use-register ?+)
-  (call-interactively 'evil-yank))
-
-(defun my/clip-p ()
-  (interactive)
-  (evil-use-register ?+)
-  (call-interactively 'evil-paste-after))
-
-(defun my/clip-d ()
-  (interactive)
-  (evil-use-register ?+)
-  (call-interactively 'evil-delete))
-#+end_src
-
-** Undo Tree
-#+begin_src emacs-lisp
-(use-package undo-tree
-  :config
-  (global-undo-tree-mode))
-#+end_src
-
-** Evil Snipe
-2-char searching and repeated f/t
-#+begin_src emacs-lisp
-(use-package evil-snipe
-  :after evil
-  :init
-  (setq evil-snipe-scope 'visible)
-  :config
-  (evil-snipe-mode)
-  (evil-snipe-override-mode))
-#+end_src
-
-** Evil Surround
-#+begin_src emacs-lisp
-(use-package evil-surround
-  :after evil
-  :config
-  (global-evil-surround-mode))
-#+end_src
 
 * General
 #+begin_src emacs-lisp
 (use-package general
   :config
   (general-create-definer my/leader-keys
-    :keymaps '(normal insert visual emacs)
-    :prefix "SPC"
-    :global-prefix "M-SPC"))
+    :prefix "M-SPC")
+  (general-auto-unbind-keys))
 #+end_src
 
 * Vertico
 The completion mechanism
 #+begin_src emacs-lisp
 (use-package vertico
-  :init
-  (setq read-file-name-completion-ignore-case t
-        read-buffer-completion-ignore-case t
-        completion-ignore-case t)
-  ;; (setq vertico-multiform-categories
-  ;;       '((consult-grep reverse)
-  ;;         (t reverse)))
+  :custom
+  (read-file-name-completion-ignore-case t)
+  (read-buffer-completion-ignore-case t)
+  (completion-ignore-case t)
   :config
   (vertico-mode)
   (vertico-reverse-mode))
@@ -214,8 +123,8 @@ Fuzzy search
 #+begin_src emacs-lisp
 (use-package hotfuzz
   :after vertico
-  :init
-  (setq completion-styles '(hotfuzz))
+  :custom
+  (completion-styles '(hotfuzz))
   :config
   (require 'hotfuzz))
 #+end_src
@@ -243,6 +152,7 @@ Char-based jump
 
 ** Normal
 #+begin_src emacs-lisp
+(put 'suspend-frame 'disabled t) ;; disable C-z to suspend frame
 (global-set-key (kbd "<escape>")    'keyboard-escape-quit)  ;; esc to quit prompts
 (global-set-key (kbd "<next>")      'my/scroll-half-page-down)
 (global-set-key (kbd "<prior>")     'my/scroll-half-page-up)
@@ -381,7 +291,7 @@ Char-based jump
 (scroll-bar-mode 0)
 #+end_src
 
-** Disable Blink Cursor
+** No Blink Cursor
 #+begin_src emacs-lisp
 (blink-cursor-mode 0)
 #+end_src
@@ -419,12 +329,12 @@ Char-based jump
 
 ** Centering Content
 #+begin_src emacs-lisp
-(use-package sublimity
+(use-package visual-fill-column
+  :custom
+  (visual-fill-column-width 90)
+  (visual-fill-column-center-text t)
   :config
-  (require 'sublimity-attractive)
-  ;; Keep content on center
-  (setq sublimity-attractive-centering-width 90)
-  (sublimity-mode))
+  (global-visual-fill-column-mode 1))
 #+end_src
 
 ** Show parens
@@ -461,6 +371,7 @@ Char-based jump
   ([remap describe-command] . helpful-command)
   ("C-h h" . helpful-at-point))
 #+end_src
+
 ** Dont create backup file
 #+begin_src emacs-lisp
 (setq make-backup-files nil)
