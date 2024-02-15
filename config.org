@@ -1,7 +1,7 @@
 #+TITLE: Config File
 #+AUTHOR: uima
 #+DESCRIPTION: The emacs config file
-#+PROPERTY: header-args:emacs-lisp :tangle ./init.el :mkdirp yes
+#+PROPERTY: header-args:emacs-lisp :tangle (expand-file-name "init.el" user-emacs-directory) :mkdirp yes
 #+STARTUP: content
 
 * TOC :TOC:
@@ -29,14 +29,13 @@
   - [[#roam-ui][Roam UI]]
   - [[#capture-templete][Capture Templete]]
   - [[#structure-template][Structure Template]]
+  - [[#roam-template][Roam Template]]
   - [[#babel][Babel]]
   - [[#save-after-refile][Save After Refile]]
   - [[#bullets][Bullets]]
   - [[#toc][Toc]]
   - [[#show-hidden-element][Show Hidden Element]]
   - [[#insert-links-with-title][Insert Links with Title]]
-  - [[#export][Export]]
-  - [[#automatically-done-when-all-children-are-done][Automatically DONE When All Children Are Done]]
 - [[#ui][UI]]
   - [[#disable-gui-bars][Disable GUI Bars]]
   - [[#no-blink-cursor][No Blink Cursor]]
@@ -61,16 +60,15 @@
 (defun my/auto-tangle-config ()
   (when (string-equal (buffer-file-name)
                       (expand-file-name "config.org" user-emacs-directory))
-    ;; Dynamic scoping to the rescue
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle))))
 
 (add-hook 'org-mode-hook
 	  (lambda () (add-hook 'after-save-hook #'my/auto-tangle-config)))
 #+end_src
+
 * Package Manager
 #+begin_src emacs-lisp
-;; Set up package.el to work with MELPA
 (require 'package)
 (setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("org" . "https://orgmode.org/elpa/")
@@ -236,6 +234,7 @@ History plug for Vertico
    ("r" . recentf)
    ("c" . (lambda () (interactive) (find-file "~/.config/emacs/config.org")))
    ("o" . (lambda () (interactive) (find-file "~/org/inbox.org")))
+   ("x" . (lambda () (interactive) (load-file "~/.config/emacs/init.el")))
    ("m" . make-directory)
    ("d" . delete-file)
    ))
@@ -362,6 +361,11 @@ History plug for Vertico
      ("IN-PROGRESS" . (:foreground "Cyan"       :weight bold))
      ("WAITING"     . (:foreground "DarkOrange" :weight bold))
      ("DONE"        . (:foreground "LimeGreen"  :weight bold))
+
+     ("TO-GET"      . (:foreground "GoldenRod"  :weight bold))
+     ("UPDATE"      . (:foreground "GoldenRod"  :weight bold))
+     ("GET"         . (:foreground "Cyan"       :weight bold))
+     ("INGORE"      . (:foreground "LimeGreen"  :weight bold))
      ))
 
   ;; TAG
@@ -381,13 +385,6 @@ History plug for Vertico
   (org-roam-completion-everywhere t)
   (org-roam-node-display-template
    (concat "${title:*} " (propertize "${tags:15}" 'face 'org-tag)))
-  (org-roam-capture-templates
-   '(("d" "default" plain "\n%?"
-      :target (file+head
-               "%<%Y%m%d%H%M%S>-${slug}.org"
-               "#+title: ${title}\n#+data: %U\n#+filetags:\n")
-      :unnarrowed t)
-     ))
   :bind (("C-c l" . org-roam-buffer-toggle)
          ("C-c f" . org-roam-node-find)
          ("C-c i" . org-roam-node-insert)
@@ -434,8 +431,16 @@ History plug for Vertico
          entry (file "~/org/inbox.org")
          "* TODO %?\n:CREATED: %T\n%a\n"
          :empty-lines-before 1)
+
+	    ("m" "Music")
+	    ("ma" "Add artist to list"
+	     entry (file "~/org/music_artist.org")
+	     "* %^{Artist} %^g\n:PROPERTIES:\n:Title:        %\\1\n:MusicBrainz:  [[%^{MusicBrainz}][MusicBrainz]]\n:Link:         %^{Link}\n:END:\n\n** Album [/]\n%?\n** EP [/]\n\n** Single [/]\n"
+	     :empty-lines-before 1)
         ))
 #+end_src
+*** TODO Music manager
+[[https://reddit.uima.duckdns.org/r/orgmode/comments/j4yl0y/orgcapturetemplates_how_can_i_dynamically_pick_a/][org-capture-templates: how can I dynamically pick a target heading for a chec...]]
 
 ** Structure Template
 #+begin_src emacs-lisp
@@ -456,6 +461,17 @@ History plug for Vertico
     ("sh" . "src shell\n")
     ("sp" . "src python\n")
     ))
+#+end_src
+
+** Roam Template
+#+begin_src emacs-lisp
+(setq org-roam-capture-templates
+      '(("d" "default" plain "\n%?"
+	 :target (file+head
+		  "%<%Y%m%d%H%M%S>-${slug}.org"
+		  "#+title: ${title}\n#+data: %U\n#+filetags:\n")
+	 :unnarrowed t)
+	))
 #+end_src
 
 ** Babel
@@ -509,12 +525,6 @@ History plug for Vertico
 (use-package org-cliplink
   :after org)
 #+end_src
-
-** TODO Export
-[[https://search.uima.duckdns.org/search?q=emacs%20org%20mode%20export%20unable%20resolve%20link&language=auto&time_range=&safesearch=0&categories=general][searching]]
-
-** TODO Automatically DONE When All Children Are Done
-[[https://orgmode.org/manual/Breaking-Down-Tasks.html#Breaking-Down-Tasks][manual for this]]
 
 * UI
 ** Disable GUI Bars
